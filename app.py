@@ -12,7 +12,6 @@ Liên kết giữa các module:
                                  ở Trang 4 (truyền qua st.session_state)
     app.py (file này)        -> lắp ráp UI 6 trang, quản lý st.session_state
 """
-import io
 from datetime import date
 
 import pandas as pd
@@ -24,95 +23,158 @@ import data_pipeline as dp
 import recommendation_engine as rec_engine
 import roadmap_generator as roadmap
 
-st.set_page_config(page_title="Ưu tiên hoá đầu tư AI — Y tế/Dược/KHSS", layout="wide")
+st.set_page_config(
+    page_title="Ưu tiên hoá đầu tư AI — Y tế/Dược/KHSS",
+    layout="wide",
+    page_icon="🩺",
+)
 
-# ═══════════════════════════════════════════════════════
-# CẤU HÌNH GIAO DIỆN CAO CẤP (CSS STYLING)
-# ═══════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════
+# GIAO DIỆN — CSS TUỲ CHỈNH (màu sắc, thẻ, nút bấm, sidebar)
+# ═══════════════════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-html, body, [data-testid="stApp"], [data-testid="stAppViewContainer"] {
-    background: #F8FAFC;
-    color: #0F172A;
+html, body, [data-testid="stApp"] {
     font-family: 'Inter', sans-serif;
 }
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(180deg, #F3F6FD 0%, #F8FAFC 260px, #F8FAFC 100%);
+}
+[data-testid="stHeader"] { background: transparent; }
 
+/* ---------- Sidebar ---------- */
 [data-testid="stSidebar"] {
-    background: #FFFFFF;
-    border-right: 1px solid #E2E8F0;
+    background: linear-gradient(180deg, #1E1B4B 0%, #312E81 100%);
 }
+[data-testid="stSidebar"] * { color: #E0E7FF !important; }
+[data-testid="stSidebar"] h1, [data-testid="stSidebar"] p { color: #FFFFFF !important; }
+[data-testid="stSidebar"] hr { border-color: rgba(255,255,255,0.15); }
 
-[data-testid="stHeader"] {
-    background: transparent;
+[data-testid="stSidebar"] div[role="radiogroup"] > label {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    padding: 10px 14px !important;
+    margin-bottom: 8px;
+    transition: all 0.15s ease;
 }
-
-/* Custom styles for Streamlit Metrics to look like premium KPI Cards */
-div[data-testid="metric-container"] {
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    text-align: center;
+[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+    background: rgba(255,255,255,0.14);
+    border-color: #818CF8;
 }
-
-div[data-testid="metric-container"] label {
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    color: #64748B !important;
-}
-
-div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
-    font-size: 2.2rem !important;
+[data-testid="stSidebar"] div[role="radiogroup"] input:checked + div {
+    color: #FFFFFF !important;
     font-weight: 700 !important;
-    color: #1E3A8A !important;
 }
 
-/* Premium Card container style */
+/* ---------- Tiêu đề trang ---------- */
+h1 { color: #1E1B4B !important; font-weight: 800 !important; letter-spacing: -0.5px; }
+h2, h3 { color: #312E81 !important; font-weight: 700 !important; }
+
+/* ---------- Thẻ KPI đầy màu (page 1) ---------- */
+.kpi-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
 .kpi-card {
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    flex: 1; min-width: 180px;
+    border-radius: 18px; padding: 20px 22px;
+    color: white; box-shadow: 0 8px 20px -6px rgba(0,0,0,0.25);
+}
+.kpi-card .kpi-icon { font-size: 1.6rem; opacity: 0.9; }
+.kpi-card .kpi-value { font-size: 2.1rem; font-weight: 800; margin-top: 6px; }
+.kpi-card .kpi-label { font-size: 0.85rem; font-weight: 600; opacity: 0.92; margin-top: 2px;}
+.kpi-c1 { background: linear-gradient(135deg, #6366F1, #4338CA); }
+.kpi-c2 { background: linear-gradient(135deg, #10B981, #047857); }
+.kpi-c3 { background: linear-gradient(135deg, #F59E0B, #B45309); }
+.kpi-c4 { background: linear-gradient(135deg, #EC4899, #BE185D); }
+
+/* ---------- Badge vùng (zone) ---------- */
+.zone-badge {
+    display: inline-block; padding: 5px 14px; border-radius: 999px;
+    font-weight: 700; font-size: 0.85rem; color: white;
 }
 
-/* Nút bấm bo tròn cao cấp */
+/* ---------- Nút bấm ---------- */
 .stButton > button {
-    border-radius: 99px !important;
-    border: 1px solid #E2E8F0 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    padding: 0.55rem 1.4rem !important;
+    transition: all 0.18s ease !important;
+    border: none !important;
+}
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #6366F1, #4F46E5) !important;
+    color: white !important;
+    box-shadow: 0 6px 16px -4px rgba(79,70,229,0.55) !important;
+}
+.stButton > button[kind="primary"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px -4px rgba(79,70,229,0.65) !important;
+}
+.stButton > button[kind="secondary"] {
     background: #FFFFFF !important;
-    color: #0F172A !important;
-    font-weight: 600 !important;
-    padding: 0.5rem 1.5rem !important;
-    transition: all 0.2s ease !important;
+    color: #4338CA !important;
+    border: 1.5px solid #C7D2FE !important;
+}
+.stButton > button[kind="secondary"]:hover {
+    border-color: #6366F1 !important;
+    background: #EEF2FF !important;
+}
+div[data-testid="stDownloadButton"] button {
+    background: linear-gradient(135deg, #10B981, #059669) !important;
+    color: white !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    border: none !important;
+    box-shadow: 0 6px 16px -4px rgba(5,150,105,0.5) !important;
+}
+div[data-testid="stDownloadButton"] button:hover { transform: translateY(-2px); }
+
+/* ---------- Slider màu ---------- */
+[data-testid="stSlider"] div[role="slider"] { background-color: #4F46E5 !important; }
+
+/* ---------- Thẻ khuyến nghị ---------- */
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    border-radius: 16px !important;
+    box-shadow: 0 3px 10px -4px rgba(30,27,75,0.12);
 }
 
-.stButton > button:hover {
-    border-color: #1E3A8A !important;
-    color: #1E3A8A !important;
-    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1) !important;
+/* ---------- Stepper điều hướng trên cùng ---------- */
+.stepper { display: flex; align-items: center; margin-bottom: 6px; }
+.step-dot {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem; color: white; flex-shrink: 0;
 }
+.step-label { font-size: 0.78rem; font-weight: 600; margin: 0 10px 0 6px; white-space: nowrap; }
+.step-line { flex: 1; height: 3px; border-radius: 2px; margin: 0 2px; }
+
+/* ---------- Info/warning boxes bo tròn ---------- */
+div[data-testid="stAlert"] { border-radius: 14px !important; }
 </style>
 """, unsafe_allow_html=True)
 
-PAGES = [
-    "1. Tổng quan minh bạch",
-    "2. Bằng chứng nền",
-    "3. Bản đồ hành động",
-    "4. Bộ khuyến nghị theo vùng",
-    "5. Lộ trình triển khai",
-    "6. Xuất Action Plan",
+PAGE_META = [
+    ("1. Tổng quan minh bạch", "🏠"),
+    ("2. Bằng chứng nền", "🔎"),
+    ("3. Bản đồ hành động", "🗺️"),
+    ("4. Bộ khuyến nghị theo vùng", "🎯"),
+    ("5. Lộ trình triển khai", "🛣️"),
+    ("6. Xuất Action Plan", "📤"),
 ]
+PAGES = [p for p, _ in PAGE_META]
 
 ZONE_COLORS = {
-    "Green Light": "#2e7d32",
-    "Red Light": "#c62828",
-    "R&D Opportunity": "#1565c0",
-    "Low Priority": "#757575",
+    "Green Light": "#16A34A",
+    "Red Light": "#DC2626",
+    "R&D Opportunity": "#2563EB",
+    "Low Priority": "#64748B",
+}
+ZONE_SOFT = {
+    "Green Light": "#ECFDF5",
+    "Red Light": "#FEF2F2",
+    "R&D Opportunity": "#EFF6FF",
+    "Low Priority": "#F1F5F9",
 }
 
 # ---------------------------------------------------------------------------
@@ -132,6 +194,33 @@ if "role_overrides" not in st.session_state:
 
 def goto(page_name: str):
     st.session_state.nav_page = page_name
+
+
+def zone_badge_html(zone: str) -> str:
+    color = ZONE_COLORS.get(zone, "#64748B")
+    return f'<span class="zone-badge" style="background:{color}">{zone}</span>'
+
+
+def render_stepper(current_page: str):
+    idx = PAGES.index(current_page)
+    cols = st.columns([1] * (len(PAGE_META) * 2 - 1))
+    for i, (name, icon) in enumerate(PAGE_META):
+        active = i <= idx
+        color = "#4F46E5" if active else "#CBD5E1"
+        with cols[i * 2]:
+            st.markdown(
+                f'<div style="text-align:center"><div class="step-dot" '
+                f'style="background:{color};margin:0 auto;">{icon}</div>'
+                f'<div class="step-label" style="color:{color};text-align:center;">{i+1}</div></div>',
+                unsafe_allow_html=True,
+            )
+        if i < len(PAGE_META) - 1:
+            with cols[i * 2 + 1]:
+                line_color = "#4F46E5" if i < idx else "#E2E8F0"
+                st.markdown(
+                    f'<div class="step-line" style="background:{line_color};margin-top:15px;"></div>',
+                    unsafe_allow_html=True,
+                )
 
 
 # ---------------------------------------------------------------------------
@@ -154,7 +243,7 @@ def load_everything():
 # Trang 1 — Tổng quan minh bạch
 # ---------------------------------------------------------------------------
 def page_1(scope, task_level):
-    st.title("1. Tổng quan minh bạch")
+    st.title("🏠 Tổng quan minh bạch")
     st.caption(
         "Phạm vi: O*NET-SOC Code bắt đầu bằng 29- (Lâm sàng), 31- (Hỗ trợ CSSK), "
         "19-1 (Khoa học sự sống) — chỉ giữ occupation có mặt trong CẢ dữ liệu người "
@@ -166,21 +255,29 @@ def page_1(scope, task_level):
     n_responses = len(scope["audited_desires"])
     n_experts_unique = scope["audited_expert"]["User ID"].nunique()
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Occupation đã audit", n_occ)
-    c2.metric("Task (đủ dữ liệu 2 phía)", n_tasks)
-    c3.metric("Phản hồi người lao động", n_responses)
-    c4.metric("Chuyên gia đánh giá", n_experts_unique)
+    st.markdown(f"""
+    <div class="kpi-row">
+        <div class="kpi-card kpi-c1"><div class="kpi-icon">🏥</div>
+            <div class="kpi-value">{n_occ}</div><div class="kpi-label">Occupation đã audit</div></div>
+        <div class="kpi-card kpi-c2"><div class="kpi-icon">📋</div>
+            <div class="kpi-value">{n_tasks}</div><div class="kpi-label">Task (đủ dữ liệu 2 phía)</div></div>
+        <div class="kpi-card kpi-c3"><div class="kpi-icon">🗣️</div>
+            <div class="kpi-value">{n_responses}</div><div class="kpi-label">Phản hồi người lao động</div></div>
+        <div class="kpi-card kpi-c4"><div class="kpi-icon">🧑⚕️</div>
+            <div class="kpi-value">{n_experts_unique}</div><div class="kpi-label">Chuyên gia đánh giá</div></div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.write("")
 
     if n_occ != 4 or n_tasks != 27 or n_responses != 168:
         st.warning(
-            "Số liệu hiện tại khác với con số kỳ vọng trong tài liệu gốc "
+            "⚠️ Số liệu hiện tại khác với con số kỳ vọng trong tài liệu gốc "
             "(4 occupation / 27 task / 168 phản hồi). Điều này có thể do file CSV "
             "trong thư mục data/ khác phiên bản đã dùng khi thiết kế app — hãy kiểm "
             "tra lại logic merge trước khi diễn giải kết quả, đừng ép số về 4/27/168."
         )
 
-    st.subheader("Occupation đã audit (đủ dữ liệu người lao động + chuyên gia)")
+    st.subheader("✅ Occupation đã audit (đủ dữ liệu người lao động + chuyên gia)")
     occ_summary = (
         task_level.groupby("Occupation", as_index=False)
         .agg(n_tasks=("Task ID", "nunique"),
@@ -190,7 +287,7 @@ def page_1(scope, task_level):
     )
     st.dataframe(occ_summary, width="stretch", hide_index=True)
 
-    st.subheader("Occupation trong danh mục phạm vi nhưng CHƯA có đủ dữ liệu khảo sát")
+    st.subheader("🚧 Occupation trong danh mục phạm vi nhưng CHƯA có đủ dữ liệu khảo sát")
     st.caption(
         "Đây là giới hạn dữ liệu quan trọng: các occupation này (vd. điều dưỡng, dược "
         "sĩ, bác sĩ lâm sàng trực tiếp nếu xuất hiện) KHÔNG được dùng để sinh khuyến "
@@ -204,19 +301,19 @@ def page_1(scope, task_level):
     else:
         st.info("Không có occupation nào trong phạm vi bị thiếu dữ liệu.")
 
-    st.subheader("Tải dữ liệu đã xử lý")
+    st.subheader("⬇️ Tải dữ liệu đã xử lý")
     col_a, col_b = st.columns(2)
     with col_a:
         st.download_button(
             "⬇️ Tải merged_clean.csv (dữ liệu người lao động đã audit)",
             data=scope["audited_desires"].to_csv(index=False).encode("utf-8-sig"),
-            file_name="merged_clean.csv", mime="text/csv",
+            file_name="merged_clean.csv", mime="text/csv", width="stretch",
         )
     with col_b:
         st.download_button(
             "⬇️ Tải task_level_table.csv (bảng cấp task)",
             data=task_level.to_csv(index=False).encode("utf-8-sig"),
-            file_name="task_level_table.csv", mime="text/csv",
+            file_name="task_level_table.csv", mime="text/csv", width="stretch",
         )
 
 
@@ -224,7 +321,7 @@ def page_1(scope, task_level):
 # Trang 2 — Bằng chứng nền
 # ---------------------------------------------------------------------------
 def page_2(comparison):
-    st.title("2. Bằng chứng nền")
+    st.title("🔎 Bằng chứng nền")
     st.caption(
         "Trang này CHỈ có vai trò bằng chứng hỗ trợ — xem trong 10 giây rồi sang "
         "Trang 3. So sánh gộp Y tế/Dược/KHSS (đã audit) vs Phần còn lại của toàn bộ "
@@ -234,58 +331,56 @@ def page_2(comparison):
     left, right = st.columns(2)
 
     with left:
-        st.markdown("#### Automation Desire Rating: Y tế vs Phần còn lại")
-        box_df = pd.concat([
-            pd.DataFrame({"Nhóm": "Y tế/Dược/KHSS", "Automation Desire Rating": comparison["healthcare_desire"]}),
-            pd.DataFrame({"Nhóm": "Phần còn lại", "Automation Desire Rating": comparison["rest_desire"]}),
-        ])
-        fig_box = px.box(box_df, x="Nhóm", y="Automation Desire Rating", color="Nhóm",
-                          points="all", color_discrete_sequence=["#1565c0", "#9e9e9e"])
-        fig_box.update_layout(showlegend=False, height=420)
-        st.plotly_chart(fig_box, width="stretch")
+        with st.container(border=True):
+            st.markdown("#### 📦 Automation Desire Rating: Y tế vs Phần còn lại")
+            box_df = pd.concat([
+                pd.DataFrame({"Nhóm": "Y tế/Dược/KHSS", "Automation Desire Rating": comparison["healthcare_desire"]}),
+                pd.DataFrame({"Nhóm": "Phần còn lại", "Automation Desire Rating": comparison["rest_desire"]}),
+            ])
+            fig_box = px.box(box_df, x="Nhóm", y="Automation Desire Rating", color="Nhóm",
+                              points="all", color_discrete_sequence=["#4F46E5", "#94A3B8"])
+            fig_box.update_layout(showlegend=False, height=420, margin=dict(t=10))
+            st.plotly_chart(fig_box, width="stretch")
 
-        p_val = comparison["mw_p"]
-        sig_note = "có ý nghĩa thống kê (p < 0,05)" if p_val < 0.05 else "chưa đủ bằng chứng ý nghĩa thống kê (p ≥ 0,05)"
-        st.markdown(
-            f"**Mann-Whitney U** = {dp.vn_number(comparison['mw_stat'], 1)}, "
-            f"**p** = {dp.vn_number(p_val, 4)} → {sig_note}. "
-            f"(n Y tế = {comparison['n_healthcare']}, n Phần còn lại = {comparison['n_rest']})"
-        )
+            p_val = comparison["mw_p"]
+            sig_note = "✅ có ý nghĩa thống kê (p < 0,05)" if p_val < 0.05 else "➖ chưa đủ bằng chứng ý nghĩa thống kê (p ≥ 0,05)"
+            st.markdown(
+                f"**Mann-Whitney U** = {dp.vn_number(comparison['mw_stat'], 1)}, "
+                f"**p** = {dp.vn_number(p_val, 4)} → {sig_note}. "
+                f"(n Y tế = {comparison['n_healthcare']}, n Phần còn lại = {comparison['n_rest']})"
+            )
 
     with right:
-        st.markdown("#### 13 lý do (Automation Desire + Human Agency), kèm p-value")
-        chi_df = comparison["chi_table"].copy()
-        chi_df["nổi bật"] = chi_df["reason"].isin([
-            "Reasons for Human Agency - Domain Knowledge",
-            "Reasons for Human Agency - Quality Oversight",
-        ])
-        chi_df["label_p"] = chi_df["p_value"].apply(
-            lambda p: f"p={dp.vn_number(p, 3)}" + (" *n<30, không gắn nhãn ý nghĩa*" if False else "")
-        )
-        chi_long = pd.concat([
-            pd.DataFrame({"reason": chi_df["reason"], "Nhóm": "Y tế/Dược/KHSS",
-                          "Tỷ lệ chọn (%)": chi_df["pct_healthcare"], "nổi bật": chi_df["nổi bật"]}),
-            pd.DataFrame({"reason": chi_df["reason"], "Nhóm": "Phần còn lại",
-                          "Tỷ lệ chọn (%)": chi_df["pct_rest"], "nổi bật": chi_df["nổi bật"]}),
-        ])
-        fig_bar = px.bar(chi_long, x="Tỷ lệ chọn (%)", y="reason", color="Nhóm",
-                          orientation="h", barmode="group",
-                          color_discrete_sequence=["#1565c0", "#9e9e9e"])
-        fig_bar.update_layout(height=520, yaxis_title="", legend_title_text="")
-        st.plotly_chart(fig_bar, width="stretch")
+        with st.container(border=True):
+            st.markdown("#### 📊 13 lý do (Automation Desire + Human Agency), kèm p-value")
+            chi_df = comparison["chi_table"].copy()
+            chi_df["nổi bật"] = chi_df["reason"].isin([
+                "HA: Domain Knowledge", "HA: Quality Oversight",
+            ])
+            chi_long = pd.concat([
+                pd.DataFrame({"reason": chi_df["reason"], "Nhóm": "Y tế/Dược/KHSS",
+                              "Tỷ lệ chọn (%)": chi_df["pct_healthcare"], "nổi bật": chi_df["nổi bật"]}),
+                pd.DataFrame({"reason": chi_df["reason"], "Nhóm": "Phần còn lại",
+                              "Tỷ lệ chọn (%)": chi_df["pct_rest"], "nổi bật": chi_df["nổi bật"]}),
+            ])
+            fig_bar = px.bar(chi_long, x="Tỷ lệ chọn (%)", y="reason", color="Nhóm",
+                              orientation="h", barmode="group",
+                              color_discrete_sequence=["#4F46E5", "#94A3B8"])
+            fig_bar.update_layout(height=520, yaxis_title="", legend_title_text="", margin=dict(t=10))
+            st.plotly_chart(fig_bar, width="stretch")
 
-        st.caption(
-            "⭐ Nổi bật theo yêu cầu: **Domain Knowledge** và **Quality Oversight** "
-            "(2 lý do Human Agency thường gắn với đặc thù Y tế/Dược)."
-        )
-        show_cols = chi_df[["reason", "pct_healthcare", "pct_rest", "chi2", "p_value"]].copy()
-        show_cols.columns = ["Lý do", "% Y tế", "% Phần còn lại", "Chi-square", "p-value"]
-        for c in ["% Y tế", "% Phần còn lại", "Chi-square", "p-value"]:
-            show_cols[c] = show_cols[c].apply(lambda v: dp.vn_number(v, 3))
-        st.dataframe(show_cols, width="stretch", hide_index=True)
+            st.caption(
+                "⭐ Nổi bật theo yêu cầu: **Domain Knowledge** và **Quality Oversight** "
+                "(2 lý do Human Agency thường gắn với đặc thù Y tế/Dược)."
+            )
+            show_cols = chi_df[["reason", "pct_healthcare", "pct_rest", "chi2", "p_value"]].copy()
+            show_cols.columns = ["Lý do", "% Y tế", "% Phần còn lại", "Chi-square", "p-value"]
+            for c in ["% Y tế", "% Phần còn lại", "Chi-square", "p-value"]:
+                show_cols[c] = show_cols[c].apply(lambda v: dp.vn_number(v, 3))
+            st.dataframe(show_cols, width="stretch", hide_index=True)
 
     st.info(
-        "Lưu ý phương pháp luận: không gắn nhãn 'có ý nghĩa thống kê' cho bất kỳ con số "
+        "ℹ️ Lưu ý phương pháp luận: không gắn nhãn 'có ý nghĩa thống kê' cho bất kỳ con số "
         "cấp task nào (n < 30). Không chạy ANOVA 3 nhóm nghề do không đủ lực thống kê "
         "(N=0 cho Dược, N=1 occupation cho Lâm sàng trong một số phiên bản dữ liệu)."
     )
@@ -295,16 +390,17 @@ def page_2(comparison):
 # Trang 3 — Bản đồ 27 task theo vùng hành động
 # ---------------------------------------------------------------------------
 def page_3(task_level):
-    st.title("3. Bản đồ hành động")
+    st.title("🗺️ Bản đồ task theo vùng hành động")
 
-    st.slider(
-        "Risk tolerance — ngưỡng Automation Capacity Rating để coi là 'AI đủ năng lực' "
-        "(1 = chấp nhận rủi ro cao, 5 = rất thận trọng)",
-        min_value=1.0, max_value=5.0, step=0.25,
-        key="capacity_threshold",
-        help="Ngưỡng Automation Desire Rating giữ cố định ở 3,0 (điểm giữa thang 1-5, "
-             "nghĩa là người lao động 'muốn' tự động hoá).",
-    )
+    with st.container(border=True):
+        st.slider(
+            "🎚️ Risk tolerance — ngưỡng Automation Capacity Rating để coi là 'AI đủ năng lực' "
+            "(1 = chấp nhận rủi ro cao, 5 = rất thận trọng)",
+            min_value=1.0, max_value=5.0, step=0.25,
+            key="capacity_threshold",
+            help="Ngưỡng Automation Desire Rating giữ cố định ở 3,0 (điểm giữa thang 1-5, "
+                 "nghĩa là người lao động 'muốn' tự động hoá).",
+        )
     cap_th = st.session_state.capacity_threshold
     des_th = st.session_state.desire_threshold
 
@@ -312,13 +408,13 @@ def page_3(task_level):
 
     fig = go.Figure()
     fig.add_shape(type="rect", x0=des_th, x1=5.3, y0=cap_th, y1=5.3,
-                  fillcolor="rgba(46,125,50,0.12)", line_width=0, layer="below")
+                  fillcolor="rgba(22,163,74,0.14)", line_width=0, layer="below")
     fig.add_shape(type="rect", x0=0.7, x1=des_th, y0=cap_th, y1=5.3,
-                  fillcolor="rgba(198,40,40,0.10)", line_width=0, layer="below")
+                  fillcolor="rgba(220,38,38,0.12)", line_width=0, layer="below")
     fig.add_shape(type="rect", x0=des_th, x1=5.3, y0=0.7, y1=cap_th,
-                  fillcolor="rgba(21,101,192,0.10)", line_width=0, layer="below")
+                  fillcolor="rgba(37,99,235,0.12)", line_width=0, layer="below")
     fig.add_shape(type="rect", x0=0.7, x1=des_th, y0=0.7, y1=cap_th,
-                  fillcolor="rgba(117,117,117,0.10)", line_width=0, layer="below")
+                  fillcolor="rgba(100,116,139,0.10)", line_width=0, layer="below")
 
     for zone, color in ZONE_COLORS.items():
         sub = task_level_live[task_level_live["zone"] == zone]
@@ -326,8 +422,8 @@ def page_3(task_level):
             continue
         fig.add_trace(go.Scatter(
             x=sub["desire_mean"], y=sub["capacity_mean"], mode="markers",
-            marker=dict(size=sub["n_workers"] * 3 + 8, color=color, opacity=0.8,
-                        line=dict(width=1, color="white")),
+            marker=dict(size=sub["n_workers"] * 3 + 8, color=color, opacity=0.85,
+                        line=dict(width=1.5, color="white")),
             name=zone,
             text=[f"{r.Occupation}<br>{r.Task[:60]}<br>n_workers={r.n_workers}, n_experts={r.n_experts}"
                   for r in sub.itertuples()],
@@ -337,14 +433,14 @@ def page_3(task_level):
     fig.update_layout(
         xaxis=dict(title="Automation Desire Rating (trung bình)", range=[0.7, 5.3]),
         yaxis=dict(title="Automation Capacity Rating (trung bình)", range=[0.7, 5.3]),
-        height=560, legend_title_text="Vùng",
+        height=560, legend_title_text="Vùng", plot_bgcolor="white", margin=dict(t=20),
     )
     st.plotly_chart(fig, width="stretch")
 
-    st.caption("Kích thước điểm tỷ lệ với n_workers. Đường ngưỡng: Desire = "
+    st.caption("💠 Kích thước điểm tỷ lệ với n_workers. Đường ngưỡng: Desire = "
                f"{dp.vn_number(des_th, 2)}, Capacity = {dp.vn_number(cap_th, 2)}.")
 
-    st.subheader("Bảng chi tiết (luôn kèm n)")
+    st.subheader("📄 Bảng chi tiết (luôn kèm n)")
     detail = task_level_live[[
         "Task ID", "Occupation", "Task", "n_workers", "desire_mean",
         "n_experts", "capacity_mean", "trust_gap", "zone",
@@ -353,7 +449,7 @@ def page_3(task_level):
         detail[c] = detail[c].apply(lambda v: dp.vn_number(v, 2))
     st.dataframe(detail, width="stretch", hide_index=True)
 
-    if st.button("Dùng bản đồ này để sinh khuyến nghị →", type="primary"):
+    if st.button("🎯 Dùng bản đồ này để sinh khuyến nghị →", type="primary"):
         goto("4. Bộ khuyến nghị theo vùng")
         st.rerun()
 
@@ -362,13 +458,14 @@ def page_3(task_level):
 # Trang 4 — Bộ khuyến nghị theo vùng (TRANG TRỌNG TÂM)
 # ---------------------------------------------------------------------------
 def page_4(scope, task_level):
-    st.title("4. Bộ khuyến nghị theo vùng")
+    st.title("🎯 Bộ khuyến nghị theo vùng (Recommendation Engine)")
 
-    st.slider(
-        "Risk tolerance — ngưỡng Automation Capacity Rating",
-        min_value=1.0, max_value=5.0, step=0.25,
-        key="capacity_threshold",
-    )
+    with st.container(border=True):
+        st.slider(
+            "🎚️ Risk tolerance — ngưỡng Automation Capacity Rating",
+            min_value=1.0, max_value=5.0, step=0.25,
+            key="capacity_threshold",
+        )
     cap_th = st.session_state.capacity_threshold
     des_th = st.session_state.desire_threshold
 
@@ -398,44 +495,50 @@ def page_4(scope, task_level):
 
     for zone in ["Green Light", "Red Light", "R&D Opportunity", "Low Priority"]:
         items = recs[zone]
-        st.subheader(f"{zone_titles[zone]} ({len(items)} task)")
+        st.markdown(
+            f'<h3 style="color:{ZONE_COLORS[zone]};">{zone_titles[zone]} '
+            f'<span style="font-size:1rem;opacity:0.7;">({len(items)} task)</span></h3>',
+            unsafe_allow_html=True,
+        )
         if not items:
             st.caption("Không có task nào trong vùng này với ngưỡng hiện tại.")
             continue
         for item in items:
             key_tuple = (item["task_id"], item["occupation"], zone)
-            col1, col2 = st.columns([5, 1])
-            with col1:
-                st.markdown(f"**{item['action']}**")
-                if "training_hint" in item:
-                    st.caption(item["training_hint"])
-                st.caption(
-                    f"priority_score = {dp.vn_number(item['priority_score'], 2)} · "
-                    f"n_workers = {item['n_workers']} · n_experts = {item['n_experts']}"
-                )
-                with st.expander("Xem bằng chứng"):
-                    ev = pd.DataFrame([{
-                        "Task ID": item["task_id"], "Occupation": item["occupation"],
-                        "Task": item["task"], "n_workers": item["n_workers"],
-                        "n_experts": item["n_experts"],
-                        "desire_mean": dp.vn_number(item["desire_mean"], 2),
-                        "capacity_mean": dp.vn_number(item["capacity_mean"], 2),
-                        "trust_gap": dp.vn_number(item["trust_gap"], 2),
-                    }])
-                    st.dataframe(ev, width="stretch", hide_index=True)
-            with col2:
-                checked = key_tuple in st.session_state.selected_task_keys
-                new_val = st.checkbox("Đưa vào lộ trình", value=checked, key=f"chk_{zone}_{item['task_id']}")
-                if new_val and not checked:
-                    st.session_state.selected_task_keys.add(key_tuple)
-                elif (not new_val) and checked:
-                    st.session_state.selected_task_keys.discard(key_tuple)
-            st.divider()
+            with st.container(border=True):
+                col1, col2 = st.columns([5, 1])
+                with col1:
+                    st.markdown(zone_badge_html(zone), unsafe_allow_html=True)
+                    st.markdown(f"**{item['action']}**")
+                    if "training_hint" in item:
+                        st.caption(f"💡 {item['training_hint']}")
+                    st.caption(
+                        f"📊 priority_score = {dp.vn_number(item['priority_score'], 2)} · "
+                        f"👥 n_workers = {item['n_workers']} · 🧑⚕️ n_experts = {item['n_experts']}"
+                    )
+                    with st.expander("🔍 Xem bằng chứng"):
+                        ev = pd.DataFrame([{
+                            "Task ID": item["task_id"], "Occupation": item["occupation"],
+                            "Task": item["task"], "n_workers": item["n_workers"],
+                            "n_experts": item["n_experts"],
+                            "desire_mean": dp.vn_number(item["desire_mean"], 2),
+                            "capacity_mean": dp.vn_number(item["capacity_mean"], 2),
+                            "trust_gap": dp.vn_number(item["trust_gap"], 2),
+                        }])
+                        st.dataframe(ev, width="stretch", hide_index=True)
+                with col2:
+                    checked = key_tuple in st.session_state.selected_task_keys
+                    new_val = st.checkbox("➕ Đưa vào lộ trình", value=checked,
+                                           key=f"chk_{zone}_{item['task_id']}")
+                    if new_val and not checked:
+                        st.session_state.selected_task_keys.add(key_tuple)
+                    elif (not new_val) and checked:
+                        st.session_state.selected_task_keys.discard(key_tuple)
 
-    st.caption(
-        f"Đã chọn {len(st.session_state.selected_task_keys)} task cho Trang 5 — Lộ trình triển khai."
-    )
-    if st.button("Sang Trang 5 — Lộ trình triển khai →", type="primary"):
+    st.write("")
+    n_selected = len(st.session_state.selected_task_keys)
+    st.info(f"✅ Đã chọn **{n_selected} task** cho Trang 5 — Lộ trình triển khai.")
+    if st.button("🛣️ Sang Trang 5 — Lộ trình triển khai →", type="primary"):
         goto("5. Lộ trình triển khai")
         st.rerun()
 
@@ -462,22 +565,22 @@ def _selected_items_from_state(scope, task_level: pd.DataFrame):
 # Trang 5 — Quy trình & lộ trình triển khai (TRANG TRỌNG TÂM)
 # ---------------------------------------------------------------------------
 def page_5(scope, task_level):
-    st.title("5. Lộ trình triển khai")
+    st.title("🛣️ Quy trình & lộ trình triển khai")
 
     selected_items = _selected_items_from_state(scope, task_level)
     if not selected_items:
         st.warning(
-            "Chưa có task nào được chọn. Quay lại Trang 4, tick 'Đưa vào lộ trình' cho "
+            "⚠️ Chưa có task nào được chọn. Quay lại Trang 4, tick '➕ Đưa vào lộ trình' cho "
             "các task muốn lên kế hoạch."
         )
-        if st.button("← Quay lại Trang 4"):
+        if st.button("← Quay lại Trang 4", type="secondary"):
             goto("4. Bộ khuyến nghị theo vùng")
             st.rerun()
         return
 
-    st.caption(f"Đang lên lộ trình cho {len(selected_items)} task đã chọn ở Trang 4.")
+    st.caption(f"Đang lên lộ trình cho **{len(selected_items)} task** đã chọn ở Trang 4.")
 
-    st.subheader("Gantt chart — 4 giai đoạn chuẩn")
+    st.subheader("📅 Gantt chart — 4 giai đoạn chuẩn")
     st.markdown(
         "**Discovery** (Tuần 1-2) → **Pilot** (Tuần 3-10, chỉ Green Light) → "
         "**Scale hoặc Hold** (Tuần 11-14, điểm quyết định go/no-go) → "
@@ -486,51 +589,61 @@ def page_5(scope, task_level):
     gantt_df = roadmap.build_gantt_rows(selected_items)
     fig = roadmap.render_gantt_figure(gantt_df)
     if fig is not None:
+        fig.update_layout(plot_bgcolor="white")
         st.plotly_chart(fig, width="stretch")
 
-    with st.expander("Tiêu chí Go/No-Go tại điểm quyết định (Tuần 11-14)"):
+    with st.expander("🚦 Tiêu chí Go/No-Go tại điểm quyết định (Tuần 11-14)"):
         st.markdown(
-            "- **Go**: KPI pilot đạt ngưỡng đề ra + không phát sinh sự cố an toàn/chất lượng.\n"
-            "- **No-Go**: quay lại Discovery, hoặc chuyển task sang track Red Light "
+            "- **✅ Go**: KPI pilot đạt ngưỡng đề ra + không phát sinh sự cố an toàn/chất lượng.\n"
+            "- **❌ No-Go**: quay lại Discovery, hoặc chuyển task sang track Red Light "
             "(đào tạo/minh bạch hoá) nếu nguyên nhân là do con người chưa sẵn sàng."
         )
 
-    st.subheader("Bảng RACI")
+    st.subheader("👥 Bảng RACI")
     st.caption("Vai trò generic, có thể tuỳ biến — không hard-code tên người cụ thể.")
-    rc1, rc2, rc3, rc4 = st.columns(4)
-    with rc1:
-        r_resp = st.text_input("Responsible (R)", value=st.session_state.role_overrides.get(
-            "Responsible", "Trưởng khoa/đơn vị liên quan"))
-    with rc2:
-        r_acc = st.text_input("Accountable (A)", value=st.session_state.role_overrides.get(
-            "Accountable", "Giám đốc vận hành / CIO"))
-    with rc3:
-        r_cons = st.text_input("Consulted (C)", value=st.session_state.role_overrides.get(
-            "Consulted", "Phòng CNTT, Ban An toàn người bệnh"))
-    with rc4:
-        r_inf = st.text_input("Informed (I)", value=st.session_state.role_overrides.get(
-            "Informed", "Toàn thể nhân sự khoa/đơn vị liên quan"))
+    with st.container(border=True):
+        rc1, rc2, rc3, rc4 = st.columns(4)
+        with rc1:
+            r_resp = st.text_input("Responsible (R)", value=st.session_state.role_overrides.get(
+                "Responsible", "Trưởng khoa/đơn vị liên quan"))
+        with rc2:
+            r_acc = st.text_input("Accountable (A)", value=st.session_state.role_overrides.get(
+                "Accountable", "Giám đốc vận hành / CIO"))
+        with rc3:
+            r_cons = st.text_input("Consulted (C)", value=st.session_state.role_overrides.get(
+                "Consulted", "Phòng CNTT, Ban An toàn người bệnh"))
+        with rc4:
+            r_inf = st.text_input("Informed (I)", value=st.session_state.role_overrides.get(
+                "Informed", "Toàn thể nhân sự khoa/đơn vị liên quan"))
     st.session_state.role_overrides = {
         "Responsible": r_resp, "Accountable": r_acc, "Consulted": r_cons, "Informed": r_inf,
     }
     raci_df = roadmap.build_raci_table(selected_items, st.session_state.role_overrides)
     st.dataframe(raci_df, width="stretch", hide_index=True)
 
-    st.subheader("KPI đo lường theo giai đoạn")
+    st.subheader("📈 KPI đo lường theo giai đoạn")
     st.caption("Đây là gợi ý chỉ số, không phải số liệu đã đo thật.")
     kpi_df = roadmap.build_kpi_table(selected_items)
     st.dataframe(kpi_df, width="stretch", hide_index=True)
 
-    st.subheader("Rủi ro & biện pháp giảm thiểu")
+    st.subheader("⚠️ Rủi ro & biện pháp giảm thiểu")
     risk_df = roadmap.build_risk_table(selected_items, scope["audited_desires"])
     st.dataframe(risk_df, width="stretch", hide_index=True)
 
-    st.subheader("Ước tính ngân sách theo tier")
+    st.subheader("💰 Ước tính ngân sách theo tier")
     tier, reason = roadmap.estimate_budget_tier(selected_items)
-    st.metric("Tier ngân sách", tier)
+    tier_color = {"Thấp": "#16A34A", "Trung bình": "#F59E0B", "Cao": "#DC2626"}.get(tier, "#64748B")
+    st.markdown(
+        f'<div class="kpi-card" style="background:linear-gradient(135deg,{tier_color},{tier_color}CC); '
+        f'max-width:260px;"><div class="kpi-icon">💰</div>'
+        f'<div class="kpi-value" style="font-size:1.5rem;">{tier}</div>'
+        f'<div class="kpi-label">Tier ngân sách</div></div>',
+        unsafe_allow_html=True,
+    )
     st.caption(reason)
 
-    if st.button("Sang Trang 6 — Xuất Action Plan →", type="primary"):
+    st.write("")
+    if st.button("📤 Sang Trang 6 — Xuất Action Plan →", type="primary"):
         goto("6. Xuất Action Plan")
         st.rerun()
 
@@ -593,12 +706,12 @@ def build_recommendations_csv(selected_items, raci_df, kpi_df, risk_df):
 
 
 def page_6(scope, task_level):
-    st.title("6. Xuất Action Plan")
+    st.title("📤 Xuất Action Plan")
 
     selected_items = _selected_items_from_state(scope, task_level)
     if not selected_items:
-        st.warning("Chưa có task nào được chọn ở Trang 4/5.")
-        if st.button("← Quay lại Trang 4"):
+        st.warning("⚠️ Chưa có task nào được chọn ở Trang 4/5.")
+        if st.button("← Quay lại Trang 4", type="secondary"):
             goto("4. Bộ khuyến nghị theo vùng")
             st.rerun()
         return
@@ -608,9 +721,10 @@ def page_6(scope, task_level):
     risk_df = roadmap.build_risk_table(selected_items, scope["audited_desires"])
     tier, tier_reason = roadmap.estimate_budget_tier(selected_items)
 
-    st.subheader("Xem trước Action Plan")
+    st.subheader("👁️ Xem trước Action Plan")
     md_content = build_action_plan_markdown(selected_items, raci_df, kpi_df, risk_df, tier, tier_reason)
-    st.markdown(md_content)
+    with st.container(border=True):
+        st.markdown(md_content)
 
     st.divider()
     col_a, col_b = st.columns(2)
@@ -618,14 +732,14 @@ def page_6(scope, task_level):
         st.download_button(
             "⬇️ Tải action_plan.md",
             data=md_content.encode("utf-8"),
-            file_name="action_plan.md", mime="text/markdown",
+            file_name="action_plan.md", mime="text/markdown", width="stretch",
         )
     with col_b:
         csv_df = build_recommendations_csv(selected_items, raci_df, kpi_df, risk_df)
         st.download_button(
             "⬇️ Tải recommendations_export.csv",
             data=csv_df.to_csv(index=False).encode("utf-8-sig"),
-            file_name="recommendations_export.csv", mime="text/csv",
+            file_name="recommendations_export.csv", mime="text/csv", width="stretch",
         )
 
 
@@ -633,14 +747,21 @@ def page_6(scope, task_level):
 # Điều hướng chính
 # ---------------------------------------------------------------------------
 def main():
-    st.sidebar.title("Ưu tiên hoá đầu tư AI")
+    st.sidebar.markdown("## 🩺 Ưu tiên hoá đầu tư AI")
     st.sidebar.caption("Y tế / Dược / Khoa học sự sống — dựa trên dữ liệu WORKBank")
-    
+    st.sidebar.markdown("---")
+
+    radio_labels = [f"{icon}  {name}" for name, icon in PAGE_META]
     current_index = PAGES.index(st.session_state.nav_page)
-    page = st.sidebar.radio("Điều hướng", PAGES, index=current_index)
-    if page != st.session_state.nav_page:
-        st.session_state.nav_page = page
+    chosen_label = st.sidebar.radio("Điều hướng", radio_labels, index=current_index, label_visibility="collapsed")
+    chosen_page = PAGES[radio_labels.index(chosen_label)]
+    if chosen_page != st.session_state.nav_page:
+        st.session_state.nav_page = chosen_page
         st.rerun()
+    page = st.session_state.nav_page
+
+    render_stepper(page)
+    st.write("")
 
     scope, task_level, comparison, err = load_everything()
     if err:
