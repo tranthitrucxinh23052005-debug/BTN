@@ -459,13 +459,23 @@ def page_3(task_level):
 # ---------------------------------------------------------------------------
 def page_4(scope, task_level):
     st.title("🎯 Bộ khuyến nghị theo vùng (Recommendation Engine)")
+    st.caption("Nhấn vào từng vùng để mở/đóng chi tiết. Task được chọn sẽ tự động cập nhật vào ô tổng hợp bên phải.")
 
-    with st.container(border=True):
-        st.slider(
-            "🎚️ Risk tolerance — ngưỡng Automation Capacity Rating",
-            min_value=1.0, max_value=5.0, step=0.25,
-            key="capacity_threshold",
-        )
+    # 1. Thanh lọc ngưỡng cấu hình (Đặt trong Expander cho gọn màn hình)
+    with st.expander("🎛️ Cấu hình ngưỡng lọc & Công thức tính (Nhấn để mở/đóng)", expanded=False):
+        col_s1, col_s2 = st.columns([2, 1])
+        with col_s1:
+            st.slider(
+                "🎚️ Risk tolerance — Ngưỡng Automation Capacity Rating:",
+                min_value=1.0, max_value=5.0, step=0.25,
+                key="capacity_threshold",
+                help="1 = Chấp nhận rủi ro cao, 5 = Rất thận trọng (Ngưỡng Desire giữ cố định ở mức 3.0)"
+            )
+        with col_s2:
+            st.markdown("**📐 Công thức ưu tiên:**")
+            st.latex(r"score = |trust\_gap| \times \ln(n + 1)")
+            st.caption("Điểm ưu tiên giúp sắp xếp task đáng chú ý nhất lên đầu trong từng nhóm.")
+
     cap_th = st.session_state.capacity_threshold
     des_th = st.session_state.desire_threshold
 
@@ -474,73 +484,134 @@ def page_4(scope, task_level):
         task_level_live, scope["audited_desires"], capacity_threshold=cap_th
     )
 
-    with st.expander("📐 Công thức ưu tiên hoá (minh bạch)"):
-        st.latex(r"\text{priority\_score} = |trust\_gap| \times \ln(n_{workers} + n_{experts} + 1)")
-        st.markdown(
-            "- **|trust_gap|**: cả trust_gap dương (AI đủ năng lực nhưng người lao động "
-            "không muốn → cần thuyết phục) lẫn âm (người lao động muốn nhưng AI chưa đủ "
-            "năng lực → cần đầu tư R&D) đều là tín hiệu cần hành động.\n"
-            "- **log(n+1)**: giảm ảnh hưởng của cỡ mẫu cực nhỏ, tránh 1 task có n rất nhỏ "
-            "nhưng trust_gap lớn bị đẩy lên ưu tiên top một cách phi lý.\n\n"
-            "Điểm số này CHỈ dùng để sắp xếp thứ tự trong bảng, KHÔNG dùng để so sánh 2 "
-            "task cụ thể thành câu chuyện nhân quả — luôn hiển thị kèm n bên cạnh."
-        )
+    zone_meta = [
+        ("Green Light", "🟢", "Green Light — Triển khai pilot ngay", "Các task AI đã sẵn sàng và người lao động ủng hộ."),
+        ("Red Light", "🔴", "Red Light — Minh bạch & Đào tạo", "AI đủ năng lực nhưng người lao động còn e ngại (Trust Gap dương)."),
+        ("R&D Opportunity", "🔵", "R&D Opportunity — Đầu tư R&D", "Người lao động muốn tự động hóa nhưng AI chưa đạt ngưỡng."),
+        ("Low Priority", "⚪", "Low Priority — Tạm hoãn đầu tư", "Task chưa ưu tiên cả về nhu cầu lẫn năng lực AI trong giai đoạn này.")
+    ]
 
-    zone_titles = {
-        "Green Light": "🟢 Green Light — Triển khai pilot ngay",
-        "Red Light": "🔴 Red Light (Trust Gap dương) — Minh bạch hoá + đào tạo trước",
-        "R&D Opportunity": "🔵 R&D Opportunity — Đầu tư nghiên cứu, review sau 6-12 tháng",
-        "Low Priority": "⚪ Low Priority — Không đầu tư ở giai đoạn này",
-    }
+    # --- BỐ CỤC 2 CỘT: TRÁI (CHỌN) | PHẢI (SUMMARY BOX) ---
+    col_left, col_right = st.columns([7, 4], gap="large")
 
-    for zone in ["Green Light", "Red Light", "R&D Opportunity", "Low Priority"]:
-        items = recs[zone]
-        st.markdown(
-            f'<h3 style="color:{ZONE_COLORS[zone]};">{zone_titles[zone]} '
-            f'<span style="font-size:1rem;opacity:0.7;">({len(items)} task)</span></h3>',
-            unsafe_allow_html=True,
-        )
-        if not items:
-            st.caption("Không có task nào trong vùng này với ngưỡng hiện tại.")
-            continue
-        for item in items:
-            key_tuple = (item["task_id"], item["occupation"], zone)
-            with st.container(border=True):
-                col1, col2 = st.columns([5, 1])
-                with col1:
-                    st.markdown(zone_badge_html(zone), unsafe_allow_html=True)
-                    st.markdown(f"**{item['action']}**")
-                    if "training_hint" in item:
-                        st.caption(f"💡 {item['training_hint']}")
-                    st.caption(
-                        f"📊 priority_score = {dp.vn_number(item['priority_score'], 2)} · "
-                        f"👥 n_workers = {item['n_workers']} · 🧑⚕️ n_experts = {item['n_experts']}"
-                    )
-                    with st.expander("🔍 Xem bằng chứng"):
-                        ev = pd.DataFrame([{
-                            "Task ID": item["task_id"], "Occupation": item["occupation"],
-                            "Task": item["task"], "n_workers": item["n_workers"],
-                            "n_experts": item["n_experts"],
-                            "desire_mean": dp.vn_number(item["desire_mean"], 2),
-                            "capacity_mean": dp.vn_number(item["capacity_mean"], 2),
-                            "trust_gap": dp.vn_number(item["trust_gap"], 2),
-                        }])
-                        st.dataframe(ev, width="stretch", hide_index=True)
-                with col2:
-                    checked = key_tuple in st.session_state.selected_task_keys
-                    new_val = st.checkbox("➕ Đưa vào lộ trình", value=checked,
-                                           key=f"chk_{zone}_{item['task_id']}")
-                    if new_val and not checked:
-                        st.session_state.selected_task_keys.add(key_tuple)
-                    elif (not new_val) and checked:
-                        st.session_state.selected_task_keys.discard(key_tuple)
+    # ==========================================
+    # CỘT TRÁI: 4 MỤC LỚN (MỞ / ĐÓNG CHI TIẾT)
+    # ==========================================
+    with col_left:
+        st.subheader("📋 Danh mục Khuyến nghị (4 Vùng)")
+        
+        for zone_key, icon, label, desc in zone_meta:
+            items = recs.get(zone_key, [])
+            n_items = len(items)
+            color = ZONE_COLORS.get(zone_key, "#64748B")
+            
+            # Tạo tiêu đề mượt mà cho từng Expander
+            expander_title = f"{icon} {label} ({n_items} task)"
+            
+            # Mặc định chỉ mở Green Light (hoặc mở vùng có task), các vùng khác đóng
+            is_default_open = (zone_key == "Green Light" and n_items > 0)
+            
+            with st.expander(expander_title, expanded=is_default_open):
+                st.markdown(f"<span style='color:{color}; font-weight:600;'>{desc}</span>", unsafe_allow_html=True)
+                st.markdown("---")
+                
+                if not items:
+                    st.info(f"Không có task nào thuộc vùng {zone_key} ở ngưỡng cấu hình hiện tại.")
+                else:
+                    for item in items:
+                        key_tuple = (item["task_id"], item["occupation"], zone_key)
+                        is_checked = key_tuple in st.session_state.selected_task_keys
+                        
+                        # Hộp hiển thị từng task trong cụm
+                        with st.container(border=True):
+                            c_info, c_action = st.columns([4, 1.5])
+                            
+                            with c_info:
+                                st.markdown(f"**🧑⚕️ {item['occupation']}**")
+                                st.markdown(f"📌 *{item['task']}*")
+                                st.caption(f"🎯 Action: **{item['action']}**")
+                                if "training_hint" in item:
+                                    st.caption(f"💡 *Gợi ý:* {item['training_hint']}")
+                                    
+                                # Bằng chứng số liệu thu gọn
+                                st.markdown(
+                                    f"<small style='color:#64748B;'>📊 Score: <b>{dp.vn_number(item['priority_score'], 2)}</b> | "
+                                    f"👥 Workers: {item['n_workers']} | 🧑⚕️ Experts: {item['n_experts']} | "
+                                    f"Gap: {dp.vn_number(item['trust_gap'], 2)}</small>", 
+                                    unsafe_allow_html=True
+                                )
+                            
+                            with c_action:
+                                st.write("") # Padding
+                                # Checkbox chọn đưa vào lộ trình
+                                new_val = st.checkbox(
+                                    "➕ Chọn", 
+                                    value=is_checked, 
+                                    key=f"chk_{zone_key}_{item['task_id']}_{item['occupation']}"
+                                )
+                                if new_val and not is_checked:
+                                    st.session_state.selected_task_keys.add(key_tuple)
+                                    st.rerun() # Rerun để cập nhật ngay lập tức sang Ô Summary bên phải
+                                elif (not new_val) and is_checked:
+                                    st.session_state.selected_task_keys.discard(key_tuple)
+                                    st.rerun()
 
-    st.write("")
-    n_selected = len(st.session_state.selected_task_keys)
-    st.info(f"✅ Đã chọn **{n_selected} task** cho Trang 5 — Lộ trình triển khai.")
-    if st.button("🛣️ Sang Trang 5 — Lộ trình triển khai →", type="primary"):
-        goto("5. Lộ trình triển khai")
-        st.rerun()
+    # ==========================================
+    # CỘT PHẢI: Ô TỔNG HỢP DANH SÁCH ĐÃ CHỌN (STICKY SUMMARY)
+    # ==========================================
+    with col_right:
+        st.subheader("🛒 Danh sách đã chọn")
+        
+        # Ô container chứa danh sách
+        with st.container(border=True):
+            selected_list = list(st.session_state.selected_task_keys)
+            n_selected = len(selected_list)
+            
+            st.markdown(
+                f"<div style='background:#EEF2FF; padding:12px; border-radius:10px; border-left:4px solid #4F46E5; margin-bottom:12px;'>"
+                f"<h4 style='margin:0; color:#1E1B4B !important;'>Đã chọn: <b>{n_selected}</b> task</h4>"
+                f"<span style='font-size:0.8rem; color:#4338CA;'>Các task này sẽ được chuyển trực tiếp sang Trang 5 & 6.</span>"
+                f"</div>", 
+                unsafe_allow_html=True
+            )
+            
+            if n_selected == 0:
+                st.warning("⚠️ Chưa có task nào được chọn.\n\n👉 *Hãy mở các vùng bên trái và tick chọn task bạn muốn đưa vào lộ trình triển khai.*")
+            else:
+                # Nút xóa nhanh tất cả
+                if st.button("🗑️ Xóa tất cả lựa chọn", type="secondary", width="stretch"):
+                    st.session_state.selected_task_keys.clear()
+                    st.rerun()
+                
+                st.write("")
+                # Hiển thị list task đã chọn với thanh cuộn (Scrollable container nếu quá dài)
+                with st.container(height=380, border=False):
+                    for idx, (t_id, occ, zone) in enumerate(selected_list, 1):
+                        color = ZONE_COLORS.get(zone, "#64748B")
+                        
+                        # Thẻ từng item đã chọn
+                        st.markdown(
+                            f"<div style='padding:8px 10px; margin-bottom:8px; border:1px solid #E2E8F0; border-radius:8px; background:white;'>"
+                            f"<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;'>"
+                            f"<span style='font-size:0.75rem; font-weight:700; color:white; background:{color}; padding:2px 8px; border-radius:10px;'>{zone}</span>"
+                            f"<span style='font-size:0.75rem; color:#94A3B8;'>ID: {t_id}</span>"
+                            f"</div>"
+                            f"<div style='font-weight:600; font-size:0.85rem; color:#1E1B4B;'>{occ}</div>"
+                            f"</div>", 
+                            unsafe_allow_html=True
+                        )
+            
+            st.divider()
+            
+            # ==========================================
+            # NÚT ĐIỀU HƯỚNG LIỀN MẠCH SANG TRANG 5
+            # ==========================================
+            if st.button("🛣️ Xây dựng lộ trình (Trang 5) ➔", type="primary", width="stretch", disabled=(n_selected == 0)):
+                goto("5. Lộ trình triển khai")
+                st.rerun()
+            
+            if n_selected > 0:
+                st.caption("💡 *Nhấn nút trên để tự động chuyển sang trang cấu hình Gantt & RACI.*")
 
 
 def _selected_items_from_state(scope, task_level: pd.DataFrame):
