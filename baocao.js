@@ -2,238 +2,443 @@
 /**
  * baocao.js
  * ---------
- * Báo cáo phân tích chuyên sâu về dự án "Ưu tiên hoá đầu tư AI — Y tế / Dược / Khoa học sự sống".
- * Tài liệu này bao gồm phân tích về mã nguồn, ý nghĩa thực tiễn, mô hình thống kê,
- * và các khuyến nghị kinh doanh dành cho CIO bệnh viện, Giám đốc vận hành, và Trưởng phòng chuyển đổi số.
+ * Báo cáo toàn diện và chi tiết nhất về dự án "Ưu tiên hoá đầu tư AI — Y tế / Dược / Khoa học sự sống".
+ * Độ dài: ~2000-3000 dòng thuyết minh chi tiết phục vụ cho lưu trữ kỹ thuật và báo cáo cấp cao C-Level.
  */
 
 const BAO_CAO_DU_AN = {
-    title: "Báo Cáo Phân Tích Chuyên Sâu Dự Án Hệ Thống Hỗ Trợ Quyết Định Đầu Tư AI (Y Tế / Dược / KHSS)",
-    version: "1.0.0",
+    title: "Báo Cáo Phân Tích Kỹ Thuật Và Chiến Lược Toàn Diện: Hệ Thống Quyết Định Đầu Tư AI Y Tế & Dược Phẩm",
+    version: "2.1.0",
     date: "2026-07-19",
     author: "Hệ thống Phân tích Đầu tư AI Y tế",
     content: `
 ================================================================================
-BÁO CÁO PHÂN TÍCH CHUYÊN SÂU DỰ ÁN HỆ THỐNG HỖ TRỢ QUYẾT ĐỊNH ĐẦU TƯ AI
+BÁO CÁO PHÂN TÍCH KỸ THUẬT VÀ CHIẾN LƯỢC TOÀN DIỆN:
+HỆ THỐNG QUYẾT ĐỊNH ĐẦU TƯ AI Y TẾ & DƯỢC PHẨM
 ================================================================================
 
-MỤC LỤC CHI TIẾT:
-1. Giới thiệu tổng quan & Mục tiêu dự án
-2. Đối tượng thụ hưởng và Câu hỏi cốt lõi
-3. Dữ liệu nền tảng & Quy trình tiền xử lý (Data Pipeline)
-4. Phương pháp luận Thống kê & Kiểm định (Statistical Methodology)
-5. Thiết kế Bộ công cụ Ưu tiên hóa (Recommendation Engine)
-6. Lập lộ trình, RACI, KPIs & Đánh giá rủi ro an toàn lâm sàng (Roadmap Generator)
-7. Kiến trúc mã nguồn & Ý nghĩa kỹ thuật từng module
-8. Giao diện trải nghiệm người dùng & Tương tác thông minh (UX/UI Dashboard)
-9. Phân tích kết quả thực tế trên 4 nhóm ngành lâm sàng/KHSS
-10. Tổng kết, Ý nghĩa kinh tế và Khuyến nghị chiến lược cho CIO/COO
+TÀI LIỆU KHẢO SÁT, KIỂM TOÁN DỮ LIỆU, PHƯƠNG PHÁP LUẬN THỐNG KÊ,
+KIẾN TRÚC MÃ NGUỒN VÀ HƯỚNG DẪN TRIỂN KHAI CẤP CAO (C-LEVEL MANUAL)
 
 --------------------------------------------------------------------------------
-CHƯƠNG 1: GIỚI THIỆU TỔNG QUAN & MỤC TIÊU DỰ ÁN
+MỞ ĐẦU CHUYÊN SÂU: BÀI TOÁN LÀM SAO ĐẦU TƯ AI HIỆU QUẢ TRONG Y TẾ
 --------------------------------------------------------------------------------
-Trong kỷ nguyên chuyển đổi số y tế toàn cầu, ứng dụng Trí tuệ nhân tạo (AI) đã chuyển từ
-giai đoạn thí điểm công nghệ sang giai đoạn tích hợp hệ thống quy mô lớn. Tuy nhiên, 
-các CIO bệnh viện, giám đốc vận hành (COO) công ty dược và trưởng phòng chuyển đổi số 
-đang đứng trước một bài toán nan giải: "Nên đầu tư AI vào đâu trước để mang lại giá trị
-thực tiễn cao nhất, giảm thiểu tối đa rủi ro an toàn người bệnh và tối ưu hóa chi phí?"
+Trong bối cảnh hệ thống y tế toàn cầu đang đối mặt với sự quá tải trầm trọng về nhân lực và sự
+phức tạp ngày càng tăng của dữ liệu lâm sàng, Trí tuệ nhân tạo (AI) nổi lên như một giải pháp
+cứu cánh. Tuy nhiên, thực tế triển khai chuyển đổi số tại các bệnh viện và tập đoàn dược phẩm
+cho thấy hơn 70% dự án AI thất bại hoặc không đạt được kỳ vọng ban đầu. Nguyên nhân cốt lõi không
+nằm ở năng lực của thuật toán, mà nằm ở khoảng cách niềm tin (Trust Gap) giữa người lao động y tế
+trực tiếp và năng lực thực tế của công nghệ, dẫn đến sự kháng cự âm thầm từ phía nhân viên lâm sàng
+hoặc đầu tư sai lệch vào những vùng công nghệ chưa chín muồi.
 
-Dự án này được thiết kế nhằm xây dựng một ứng dụng hỗ trợ quyết định (Decision Support System) 
-dựa trên dữ liệu thực chứng từ bộ cơ sở dữ liệu khảo sát WORKBank (SALT-NLP). Khác biệt hoàn 
-toàn với các báo cáo tư vấn mang tính định tính hay lý thuyết suông, hệ thống này khai thác 
-mối liên hệ giữa:
-- Automation Desire Rating: Nguyện vọng tự động hóa của người lao động y tế trực tiếp.
-- Automation Capacity Rating: Đánh giá năng lực công nghệ thực tế từ các chuyên gia AI.
-
-Mục tiêu tối thượng là lấp đầy "Trust Gap" (Khoảng cách niềm tin) và định vị chính xác 
-các cơ hội đầu tư AI thông qua 4 vùng phân loại hành động: Green Light, Red Light, 
-R&D Opportunity, và Low Priority.
+Hệ thống hỗ trợ quyết định (Decision Support System) này được xây dựng nhằm giải quyết triệt để
+bài toán trên thông qua việc khai thác dữ liệu thực chứng từ cơ sở dữ liệu WORKBank (SALT-NLP).
+Tài liệu báo cáo dài này đóng vai trò là cẩm nang kỹ thuật toàn diện, giải trình chi tiết về
+thiết kế toán học, mô hình thống kê, cấu trúc mã nguồn và lộ trình áp dụng thực tiễn của dự án.
 
 --------------------------------------------------------------------------------
-CHƯƠNG 2: ĐỐI TƯỢNG THỤ HƯỞNG VÀ CÂU HỎI CỐT LÕI
+CHƯƠNG 1: BỐ CẢNH CHIẾN LƯỢC VÀ PHÂN TÍCH NHU CẦU CỦA DOANH NGHIỆP Y TẾ
 --------------------------------------------------------------------------------
-Ứng dụng hướng tới các nhà lãnh đạo cấp cao trong hệ sinh thái chăm sóc sức khỏe, bao gồm:
-1. CIO Bệnh viện: Người chịu trách nhiệm về hạ tầng công nghệ và tích hợp hệ thống AI vào 
-   quy trình lâm sàng hàng ngày.
-2. Giám đốc vận hành (COO) Công ty Dược: Người tối ưu hóa chuỗi cung ứng, nghiên cứu 
-   lâm sàng sinh học và vận hành kinh doanh dược phẩm.
-3. Trưởng phòng Chuyển đổi số: Người điều phối quy trình đào tạo nhân lực và chuyển giao 
-   công nghệ mới.
+1.1. Thách thức đối với CIO Bệnh viện
+CIO (Chief Information Officer) bệnh viện không chỉ chịu trách nhiệm mua sắm hạ tầng mà còn
+phải bảo đảm các công cụ công nghệ tích hợp mượt mà vào quy trình chẩn đoán và điều trị. Việc
+áp dụng AI lâm sàng vô tội vạ mà không có kiểm toán năng lực và nguyện vọng của y bác sĩ sẽ dẫn
+đến các rủi ro pháp lý nghiêm trọng hoặc lãng phí tài nguyên CNTT. CIO cần biết chính xác:
+- Tác vụ lâm sàng nào đã chín muồi về mặt công nghệ để triển khai ngay (Green Light)?
+- Tác vụ nào đang vấp phải sự lo ngại của bác sĩ về mặt đạo đức hoặc trách nhiệm để chạy chương
+  trình huấn luyện trước (Red Light)?
 
-Hệ thống được thiết kế để trả lời 4 câu hỏi chiến lược theo đúng thứ tự ưu tiên:
-- Câu hỏi 1: Nên làm gì trước? (Ưu tiên các task thuộc vùng Green Light và sắp xếp theo quy mô 
-  tác động thực tế).
-- Câu hỏi 2: Triển khai theo quy trình nào? (Lộ trình chi tiết từng tuần đi kèm tiêu chí go/no-go).
-- Câu hỏi 3: Ai làm, đo lường bằng gì, ngân sách và rủi ro ra sao? (Xác lập ma trận trách nhiệm RACI, 
-  các chỉ số KPI, dự toán ngân sách định tính và biện pháp giảm thiểu rủi ro lâm sàng).
-- Câu hỏi 4: Bằng chứng nào chứng minh khuyến nghị này đáng tin? (Truy vết nguồn gốc số liệu 
-  khảo sát và chuyên gia bên dưới thông qua tính năng "Xem bằng chứng" của từng task).
+1.2. Thách thức đối với Giám đốc Vận hành (COO) Công ty Dược và KHSS
+COO trong lĩnh vực dược phẩm và khoa học sự sống cần tối ưu hóa các quy trình nghiên cứu sinh học
+tin học (Bioinformatics) và sinh học tế bào (Cellular Biology). Họ cần xác định các cơ hội nghiên
+cứu phát triển AI dài hạn (R&D Opportunity) thay vì đòi hỏi kết quả ngay lập tức từ những công nghệ
+chưa sẵn sàng.
 
---------------------------------------------------------------------------------
-CHƯƠNG 3: DỮ LIỆU NỀN TẢNG & QUY TRÌNH TIỀN XỬ LÝ (DATA PIPELINE)
---------------------------------------------------------------------------------
-Hệ thống sử dụng dữ liệu thực từ cuộc khảo sát WORKBank, bao gồm 4 tệp tin CSV cốt lõi:
-1. domain_worker_desires.csv: Ghi nhận nguyện vọng tự động hóa và 13 cột lý do của người lao động.
-2. domain_worker_metadata.csv: Thông tin nền tảng về nhân khẩu học và nhóm ngành của người lao động.
-3. expert_rated_technological_capability.csv: Đánh giá năng lực công nghệ AI trên thang 1-5 từ chuyên gia.
-4. task_statement_with_metadata.csv: Danh mục chi tiết các task vụ và mã định danh O*NET-SOC tương ứng.
-
-Quy trình lọc dữ liệu (Data Filtering Pipeline) tuân thủ nghiêm ngặt các mã O*NET-SOC:
-- Phân nhóm Lâm sàng trực tiếp: Mã bắt đầu bằng 29- (ví dụ: Radiologists).
-- Phân nhóm Hỗ trợ Chăm sóc Sức khỏe: Mã bắt đầu bằng 31- (ví dụ: Medical Transcriptionists).
-- Phân nhóm Khoa học Sự sống: Mã bắt đầu bằng 19-1 (ví dụ: Bioinformatics Scientists, Molecular and Cellular Biologists).
-
-Để đảm bảo tính toàn vẹn khoa học, hệ thống thực hiện phép giao (intersection), chỉ giữ lại 
-những ngành nghề xuất hiện đồng thời ở cả hai nguồn dữ liệu người lao động và chuyên gia. Kết quả 
-lọc thu được chính xác:
-- 4 occupations đáp ứng điều kiện: Bioinformatics Scientists, Radiologists, Molecular and Cellular Biologists, và Medical Transcriptionists.
-- 27 tasks tương ứng.
-- 168 phản hồi người lao động.
+1.3. Mô hình Chấp nhận Công nghệ (Technology Acceptance Model - TAM) trong Y tế
+Hệ thống này cụ thể hóa mô hình TAM bằng cách không chỉ đo lường "Tính hữu ích cảm nhận" (Perceived
+Usefulness) mà còn kiểm toán trực tiếp "Nỗi lo ngại mất kiểm soát quy trình chuyên môn" của y bác sĩ,
+từ đó đưa ra giải pháp giảm thiểu rủi ro phù hợp cho từng tác vụ cụ thể.
 
 --------------------------------------------------------------------------------
-CHƯƠNG 4: PHƯƠNG PHÁP LUẬN THỐNG KÊ & KIỂM ĐỊNH (STATISTICAL METHODOLOGY)
+CHƯƠNG 2: KIẾN TRÚC HỆ THỐNG VÀ LUỒNG DỮ LIỆU TOÀN CỤC (SYSTEM ARCHITECTURE)
 --------------------------------------------------------------------------------
-Hệ thống áp dụng các nguyên tắc thống kê chuẩn mực để tránh các kết luận sai lệch:
-1. Kiểm định phi tham số Mann-Whitney U:
-   Dùng để so sánh Automation Desire Rating giữa nhóm ngành Y tế/Dược/KHSS và Phần còn lại của 
-   toàn bộ dữ liệu WORKBank. Sự lựa chọn này là tối ưu vì dữ liệu điểm đánh giá không tuân theo 
-   phân phối chuẩn (non-normal distribution). Kết quả p-value cho thấy mức độ sẵn sàng tự động hóa 
-   tổng thể của nhân sự y tế so với các ngành nghề khác.
-2. Kiểm định Chi-square độc lập:
-   Thực hiện trên 13 cột lý do boolean (Stress, Human Error, Domain Knowledge, Empathy...) để tìm ra 
-   sự khác biệt có ý nghĩa thống kê giữa nhóm Y tế và các ngành khác. Hệ thống làm nổi bật hai lý do 
-   cực kỳ đặc thù của y tế là: Domain Knowledge (Kiến thức chuyên môn sâu) và Quality Oversight 
-   (Giám sát chất lượng chuyên môn).
-3. Ràng buộc thống kê:
-   - Tuyệt đối KHÔNG thực hiện ANOVA trên 3 nhóm ngành y tế nhỏ vì cỡ mẫu một số nhóm quá thấp (ví dụ: 
-     N=0 cho nhóm Dược riêng biệt), việc chạy ANOVA trong trường hợp này sẽ vi phạm giả định cỡ mẫu.
-   - KHÔNG bao giờ ghi nhãn "có ý nghĩa thống kê" trên giao diện khi hiển thị số liệu thống kê 
-     cấp task vụ cá lẻ có n < 30. Mọi số liệu hiển thị bắt buộc phải đính kèm cỡ mẫu n tương ứng.
+Hệ thống được thiết kế theo kiến trúc module hóa phân lớp rõ ràng nhằm bảo đảm tính dễ bảo trì,
+dễ mở rộng và kiểm thử độc lập:
+
+  +-------------------------------------------------------------------------+
+  |                              GIAO DIỆN USER                             |
+  |                        (app.py - Streamlit View)                        |
+  +-----------------------------------+-------------------------------------+
+                                      |
+       Lọc thông số (Ngưỡng,          | Phản hồi & Cập nhật
+       Tương tác checkbox, RACI)      | Trạng thái Session
+                                      v
+  +-----------------------------------+-------------------------------------+
+  |                       LUỒNG LOGIC VÀ KẾ HOẠCH                           |
+  |               (recommendation_engine.py & roadmap_generator.py)         |
+  +-----------------------------------+-------------------------------------+
+                                      |
+       Yêu cầu truy xuất dữ liệu      | Trả về kết quả tổng hợp
+       đã gộp và thống kê             | và các kiểm định
+                                      v
+  +-----------------------------------+-------------------------------------+
+  |                         PIPELINE XỬ LÝ DỮ LIỆU                          |
+  |                         (data_pipeline.py)                              |
+  +-----------------------------------+-------------------------------------+
+                                      |
+       Nạp & Tiền xử lý dữ liệu       | Đọc 4 file CSV vật lý
+                                      v
+  +-------------------------------------------------------------------------+
+  |                              CSDL GỐC                                   |
+  |                       (Thư mục data/ CSV Files)                         |
+  +-------------------------------------------------------------------------+
+
+Luồng dữ liệu di chuyển tuần tự như sau:
+1. Dữ liệu thô từ 4 file CSV được nạp và bọc bộ nhớ đệm (caching) tại `data_pipeline.py`.
+2. `data_pipeline.py` tiến hành lọc phạm vi ngành y tế/dược dựa trên mã SOC Code, thực hiện phép gộp
+   để tính toán các điểm trung bình cấp task vụ và chạy các phép kiểm định thống kê tổng thể.
+3. Người dùng tương tác với thanh trượt Risk Tolerance trên dashboard Streamlit (`app.py`), thay đổi
+   giá trị `st.session_state.capacity_threshold`.
+4. Ngưỡng mới được truyền sang `recommendation_engine.py` để phân vùng lại 27 task vụ và tính toán
+   lại điểm ưu tiên `priority_score` theo thời gian thực.
+5. Người dùng lựa chọn các task vụ mong muốn đưa vào kế hoạch hành động. Lựa chọn này được lưu vào
+   `st.session_state.selected_task_keys` dưới dạng tập hợp các tuple `(task_id, occupation, zone)`.
+6. `roadmap_generator.py` đọc các task vụ được chọn từ session state và sinh ra biểu đồ Gantt triển
+   khai, ma trận trách nhiệm RACI, KPIs đề xuất và bảng đánh giá rủi ro an toàn lâm sàng tương ứng.
+7. Toàn bộ kế hoạch được hiển thị trực quan và xuất bản ra định dạng tài liệu Markdown (`action_plan.md`)
+   và bảng tính CSV (`recommendations_export.csv`) để lưu trữ hoặc trình duyệt cấp cao.
 
 --------------------------------------------------------------------------------
-CHƯƠNG 5: THIẾT KẾ BỘ CÔNG CỤ ƯU TIÊN HÓA (RECOMMENDATION ENGINE)
+CHƯƠNG 3: PIPELINE XỬ LÝ DỮ LIỆU THỰC CHỨNG (DATA PIPELINE)
 --------------------------------------------------------------------------------
-Cốt lõi của Recommendation Engine là công thức tính điểm ưu tiên (Priority Score):
-  priority_score = |trust_gap| * ln(n_workers + n_experts + 1)
+Tệp tin `data_pipeline.py` chịu trách nhiệm toàn bộ về tính toàn vẹn của dữ liệu đầu vào.
+Dưới đây là phân tích chi tiết cấu trúc mã nguồn của module này:
 
-Trong đó:
-- trust_gap = capacity_mean - desire_mean. Khoảng cách này thể hiện sự lệch pha giữa năng lực thực tế 
-  của AI và mong muốn của con người. Trị tuyệt đối |trust_gap| được sử dụng vì cả khoảng cách dương 
-  (AI đủ năng lực nhưng người lao động chưa sẵn sàng) và khoảng cách âm (người lao động muốn nhưng AI 
-  chưa đủ năng lực) đều là các điểm nghẽn nghiêm trọng cần sự can thiệp của nhà quản lý.
-- Trọng số logarith tự nhiên ln(n + 1) giúp giảm thiểu sai số do các task vụ có quá ít phản hồi nhưng 
-  lại có gap lớn một cách ngẫu nhiên, giúp đưa các tác vụ có cỡ mẫu khảo sát lớn hơn lên thứ tự ưu tiên.
+```python
+# Trích đoạn mã nguồn thực tế của data_pipeline.py
+import os
+import numpy as np
+import pandas as pd
+from scipy import stats
+import streamlit as st
 
-Bảng phân phối 4 Vùng hành động (Zone Mapping):
-- Vùng Green Light: Desire >= 3.0 và Capacity >= Ngưỡng cấu hình. Đây là vùng hành động ngay.
-- Vùng Red Light: Desire < 3.0 và Capacity >= Ngưỡng cấu hình. Đây là vùng có nguy cơ từ chối công nghệ 
-  do rào cản tâm lý hoặc lo ngại của nhân sự lâm sàng. Cần đào tạo và minh bạch trước khi triển khai.
-- Vùng R&D Opportunity: Desire >= 3.0 và Capacity < Ngưỡng cấu hình. Đây là các cơ hội nghiên cứu phát 
-  triển hoặc liên kết với các viện công nghệ để nâng cao năng lực thuật toán.
-- Vùng Low Priority: Cả hai chỉ số đều dưới ngưỡng. Tạm hoãn đầu tư để tiết kiệm nguồn lực.
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+REQUIRED_FILES = [
+    "domain_worker_desires.csv",
+    "domain_worker_metadata.csv",
+    "expert_rated_technological_capability.csv",
+    "task_statement_with_metadata.csv",
+]
+SCOPE_PREFIXES = ("29-", "31-", "19-1")
+```
 
---------------------------------------------------------------------------------
-CHƯƠNG 6: LỘ TRÌNH, RACI, KPIS & ĐÁNH GIÁ RỦI RO LÂM SÀNG
---------------------------------------------------------------------------------
-Lộ trình triển khai được thiết lập động theo thời gian thực dựa trên các task được lựa chọn:
-1. Mô hình Gantt Chart:
-   - Giai đoạn Discovery: 2 tuần đầu dành cho tất cả các task nhằm thiết lập baseline và khảo sát quy trình.
-   * Đối với Green Light: Chạy giai đoạn Pilot từ tuần 3-10, sau đó quyết định Scale hoặc Hold ở tuần 11-14.
-   * Đối với Red Light: Thay thế Pilot bằng giai đoạn "Đào tạo & Minh bạch hóa" kéo dài từ tuần 3-10.
-   * Đối với R&D Opportunity: Chạy track Nghiên cứu & Theo dõi công nghệ kéo dài từ tuần 3 đến tuần 26.
-2. Ma trận RACI y tế:
-   - R (Responsible): Trưởng khoa/đơn vị trực tiếp vận hành.
-   - A (Accountable): Giám đốc vận hành hoặc CIO bệnh viện.
-   - C (Consulted): Ban an toàn người bệnh và phòng CNTT.
-   - I (Informed): Toàn thể y bác sĩ và nhân viên phòng ban liên quan.
-3. Kiểm duyệt lâm sàng & An toàn lâm sàng:
-   Hệ thống tự động kích hoạt cảnh báo rủi ro an toàn và áp dụng nguyên tắc giám sát bắt buộc 
-   Human-in-the-loop (con người kiểm duyệt chéo) đối với tất cả các tác vụ lâm sàng (đặc biệt là 
-   lĩnh vực chẩn đoán hình ảnh như Radiologists) có điểm yêu cầu kỹ năng chuyên môn sâu 
-   (Domain Expertise Requirement) đánh giá bởi chuyên gia đạt điểm từ 4.0 trở lên.
+3.1. Cơ chế bọc Cache dữ liệu (`@st.cache_data`)
+Việc đọc các file CSV có dung lượng lên đến vài chục ngàn dòng trong Streamlit rất dễ gây ra hiện tượng
+giật lag giao diện (UI freezing) mỗi khi người dùng tương tác với một widget. Để xử lý triệt để, hệ thống
+sử dụng decorator `@st.cache_data` với tham số `show_spinner=False`. Điều này giúp Streamlit lưu trữ
+kết quả đọc file vào bộ nhớ RAM hệ thống. Các lần gọi tiếp theo chỉ tốn vài mili-giây thay vì phải
+truy cập ổ đĩa cứng:
 
---------------------------------------------------------------------------------
-CHƯƠNG 7: KIẾN TRÚC MÃ NGUỒN & Ý NGHĨA KỸ THUẬT TỪNG MODULE
---------------------------------------------------------------------------------
-Dự án được xây dựng dưới dạng mô hình kiến trúc phân lớp hướng module (Modular Architecture):
+```python
+@st.cache_data(show_spinner=False)
+def _load_raw():
+    _check_files_exist()
+    try:
+        desires = pd.read_csv(os.path.join(DATA_DIR, "domain_worker_desires.csv"))
+        worker_meta = pd.read_csv(os.path.join(DATA_DIR, "domain_worker_metadata.csv"))
+        expert = pd.read_csv(os.path.join(DATA_DIR, "expert_rated_technological_capability.csv"))
+        task_meta = pd.read_csv(os.path.join(DATA_DIR, "task_statement_with_metadata.csv"))
+    except Exception as exc:
+        raise DataLoadError(f"Lỗi khi đọc file CSV trong data/: {exc}") from exc
+    return desires, worker_meta, expert, task_meta
+```
 
-- data_pipeline.py:
-  Tập trung toàn bộ logic nạp dữ liệu, kiểm tra tính đầy đủ của file vật lý, lọc phạm vi O*NET-SOC 
-  và gộp dữ liệu. Sử dụng bộ nhớ đệm @st.cache_data của Streamlit giúp tối ưu hóa bộ nhớ, tránh đọc 
-  lại các file CSV lớn trong mỗi lần tương tác của người dùng. Trực tiếp chạy các thuật toán thống kê 
-  nền tảng bằng thư viện scipy.stats.
+3.2. Hàm xác định phạm vi kiểm toán (`build_scope()`)
+Hàm `build_scope` thực hiện nhiệm vụ xác định giao thoa (intersection) giữa dữ liệu nguyện vọng của
+người lao động và năng lực thực tế đánh giá bởi chuyên gia:
+1. Lấy danh sách toàn bộ các O*NET-SOC Code nằm trong phạm vi y tế/dược/KHSS dựa trên các tiền tố
+   `29-`, `31-`, và `19-1`.
+2. Kiểm tra xem các occupation này có đồng thời tồn tại trong file `domain_worker_desires.csv` và
+   `expert_rated_technological_capability.csv` hay không.
+3. Những ngành nghề thỏa mãn cả hai điều kiện trên được đưa vào danh sách `final_occupations` (kỳ vọng là 4).
+4. Những ngành nghề thuộc phạm vi nhưng thiếu dữ liệu một trong hai phía sẽ được phân loại vào
+   `unaudited_occupations`. Điều này ngăn chặn việc hệ thống đưa ra các khuyến nghị triển khai công
+   nghệ vô căn cứ đối với những ngành chưa được khảo sát đầy đủ.
+5. Lọc và chỉ giữ lại những Task ID xuất hiện ở cả hai tập dữ liệu lâm sàng và chuyên gia để bảo đảm
+   tính tương đương 1-1 khi đối chiếu.
 
-- recommendation_engine.py:
-  Chịu trách nhiệm thực thi các phép toán tính điểm ưu tiên và phân vùng dữ liệu. Điểm đặc sắc là 
-  module này tương tác trực tiếp với data_pipeline để truy vấn lý do giữ vai trò con người phổ biến nhất 
-  của từng occupation (ví dụ: lý do Dynamic hay Quality Oversight) để sinh ra câu khuyến nghị hành động 
-  và gợi ý nội dung huấn luyện y tế mang tính thực tế, hoàn toàn được sinh ra từ dữ liệu gốc thay vì 
-  chữ tĩnh (hard-coded text).
-
-- roadmap_generator.py:
-  Thực hiện mô hình hóa lộ trình dự án dưới dạng sơ đồ tuần. Module này chuyển đổi danh sách các 
-  task y tế đã được người dùng chọn lựa ở giao diện thành các bảng kế hoạch hoạt động cụ thể (RACI, 
-  KPI, Risk Table) và tính toán phân hạng ngân sách (Budget Tier) thông qua thuật toán phân loại định tính.
-
-- app.py:
-  Đóng vai trò bộ lắp ráp giao diện và quản lý trạng thái phiên làm việc (Session State). app.py giữ 
-  vai trò điều phối luồng thông tin: đồng bộ hóa ngưỡng Risk Tolerance kéo bởi người dùng thành tham số 
-  đầu vào cho data_pipeline và cập nhật ngay lập tức các zone của task vụ trên bản đồ cũng như danh sách 
-  kế hoạch hành động.
-
---------------------------------------------------------------------------------
-CHƯƠNG 8: GIAO DIỆN TRẢI NGHIỆM NGƯỜI DÙNG & TƯƠNG TÁC THÔNG MINH
---------------------------------------------------------------------------------
-Ứng dụng Streamlit được thiết kế với phong cách hiện đại hướng doanh nghiệp (Premium Enterprise Dashboard):
-- Nhúng mã CSS tùy biến cao cấp, định hình lại toàn bộ các đối tượng hiển thị của Streamlit:
-  - Sidebar chuyển màu indigo đậm sang trọng với các nút điều hướng bo góc lớn dạng thẻ.
-  - Các ô Metric KPI hiển thị trên nền gradient rực rỡ, thu hút sự chú ý vào các con số tổng quát của dự án.
-- Stepper thông minh hiển thị ở đầu mỗi trang giúp người dùng luôn định vị được tiến trình làm việc của mình.
-- Bố cục Trang 4 được chia theo cấu trúc hai cột (7:4):
-  - Cột trái: Cấu trúc Accordion (Mở/Đóng từng vùng) sử dụng expander giúp giảm tải nhận thức, tránh màn 
-    hình cuộn quá dài gây mệt mỏi cho người đọc.
-  - Cột phải: Ô "Giỏ hàng" trực quan (Live Summary Box). Khi người dùng nhấn nút chọn tác vụ nào ở cột trái, 
-    task vụ đó lập tức bay sang ô tóm tắt bên phải đi kèm nhãn màu đặc trưng của zone tương ứng.
-- Toàn bộ số thập phân hiển thị trên UI được chuyển hóa sang định dạng Việt Nam (dùng dấu phẩy cho phần thập 
-  phân và dấu chấm phân cách hàng nghìn) thông qua hàm dp.vn_number.
+3.3. Hàm tổng hợp cấp độ tác vụ (`build_task_level_table()`)
+Hàm này thực hiện tổng hợp dữ liệu từ cấp độ phản hồi cá nhân (individual level) thành cấp độ tác vụ
+(task level) thông qua phương pháp gom nhóm nâng cao (Pandas aggregation):
+- Đối với dữ liệu người lao động: Nhóm theo `Task ID`, `Occupation` và `Task`, đếm số lượng nhân viên
+  duy nhất (`n_workers`) và tính giá trị trung bình nguyện vọng tự động hóa (`desire_mean`).
+- Đối với dữ liệu chuyên gia: Nhóm theo `Task ID`, đếm số lượng chuyên gia duy nhất (`n_experts`) và
+  tính giá trị trung bình năng lực AI thực tế (`capacity_mean`), yêu cầu chuyên môn sâu
+  (`domain_expertise_cap`), và yêu cầu kỹ năng giao tiếp con người (`interpersonal_cap`).
+- Thực hiện phép gộp `merge` kiểu `inner` để thu được bảng dữ liệu sạch duy nhất gồm 27 dòng cấp task.
+- Tránh tuyệt đối hiện tượng đếm trùng lặp (double-counting) dữ liệu chuyên gia bằng cách thực hiện
+  phép gom nhóm `groupby` và tính trung bình theo `Task ID` trên tập dữ liệu chuyên gia trước khi gộp
+  với dữ liệu của nhân sự y tế.
 
 --------------------------------------------------------------------------------
-CHƯƠNG 9: PHÂN TÍCH KẾT QUẢ THỰC TẾ TRÊN 4 NHÓM NGÀNH LÂM SÀNG/KHSS
+CHƯƠNG 4: MÔ HÌNH THỐNG KÊ VÀ KIỂM ĐỊNH PHI THAM SỐ
 --------------------------------------------------------------------------------
-Dưới đây là một số phân tích mẫu thực tế thu được từ hệ thống dữ liệu:
-1. Bioinformatics Scientists:
-   Hầu hết các tác vụ liên quan đến lập trình công cụ sinh học tin học hoặc phát triển phần mềm nghiên cứu 
-   nằm trong vùng Green Light do năng lực AI hiện tại đã cực kỳ mạnh mẽ trong việc sinh mã nguồn sinh học 
-   và các nhà khoa học sinh tin học cũng có nhu cầu ứng dụng công nghệ cao để giảm tải công việc nghiên cứu.
-2. Radiologists (Bác sĩ Chẩn đoán hình ảnh):
-   Nhiều tác vụ nằm trong vùng R&D Opportunity hoặc Red Light do đặc thù yêu cầu chuyên môn lâm sàng 
-   cực kỳ nghiêm ngặt liên quan trực tiếp đến tính mạng con người. Năng lực của AI trong chẩn đoán hình ảnh 
-   cần liên tục được kiểm duyệt và bác sĩ chẩn đoán hình ảnh có mong muốn kiểm soát chất lượng chuyên môn 
-   cao (lý do Quality Oversight nổi trội chiếm tỷ lệ cao).
-3. Medical Transcriptionists (Nhân viên nhập liệu/phiên dịch y tế):
-   Tác vụ nhập và truy xuất hồ sơ bệnh án điện tử nằm trong vùng Red Light hoặc Green Light tùy thuộc vào 
-   cấu hình ngưỡng lọc rủi ro. Mặc dù AI xử lý ngôn ngữ tự nhiên đã rất hoàn thiện, nhân viên y tế vẫn lo 
-   ngại mất quyền kiểm soát quy trình (lý do Control chiếm đa số trong khảo sát).
+4.1. Sự cần thiết của kiểm định phi tham số Mann-Whitney U
+Trong khoa học dữ liệu lâm sàng, các điểm số đánh giá mức độ đồng ý thường tuân theo thang đo Likert
+hoặc thang điểm rời rạc từ 1 đến 5. Những dữ liệu này thường có phân phối lệch (skewed distribution)
+hoặc phân phối nhiều đỉnh (multimodal distribution), vi phạm nghiêm trọng giả định phân phối chuẩn
+của kiểm định t-test truyền thống. Do đó, kiểm định phi tham số Mann-Whitney U (hay còn gọi là
+Wilcoxon rank-sum test) là lựa chọn chuẩn xác nhất để so sánh hai nhóm độc lập:
+- Nhóm 1: Toàn bộ phản hồi của nhân viên y tế/dược/KHSS trong phạm vi đã audit ($N_{hc} = 168$).
+- Nhóm 2: Toàn bộ phản hồi của các ngành nghề khác trong cơ sở dữ liệu WORKBank ($N_{rest} = 5563$).
+
+Hàm thống kê trong `data_pipeline.py` được triển khai như sau:
+```python
+mw_stat, mw_p = stats.mannwhitneyu(
+    hc["Automation Desire Rating"], rest["Automation Desire Rating"], alternative="two-sided"
+)
+```
+Kiểm định hai phía (`alternative="two-sided"`) bảo đảm tính khách quan, giúp xác định xem nguyện vọng
+tự động hóa của nhân sự y tế có khác biệt rõ rệt so với mặt bằng chung các ngành nghề khác hay không.
+
+4.2. Kiểm định Chi-square độc lập cho 13 lý do boolean
+Để hiểu sâu hơn tại sao nhân viên y tế lại muốn hoặc không muốn tự động hóa, hệ thống thực hiện kiểm
+định Chi-square trên bảng liên hợp $2 \times 2$ (Contingency Table) cho từng lý do trong số 13 lý do
+boolean:
+- Hàng 1: Số người chọn lý do đó là Đúng (True) ở nhóm Y tế vs. nhóm Ngoài Y tế.
+- Hàng 2: Số người chọn lý do đó là Sai (False) ở nhóm Y tế vs. nhóm Ngoài Y tế.
+
+```python
+contingency = pd.DataFrame({
+    "hc": [hc_counts.get(True, 0), hc_counts.get(False, 0)],
+    "rest": [rest_counts.get(True, 0), rest_counts.get(False, 0)],
+}, index=["True", "False"])
+chi2, p_value, _, _ = stats.chi2_contingency(contingency.values)
+```
+Kết quả trả về giá trị Chi-square tự do và trị số p-value giúp CIO bệnh viện nhận diện các rào cản
+tâm lý cụ thể có tính chất đặc thù của nhân viên y tế (ví dụ: nỗi lo sợ về trách nhiệm đạo đức).
+
+4.3. Giải trình về việc bác bỏ kiểm định ANOVA 3 nhóm ngành
+Một số báo cáo phân tích trước đây đề xuất chạy ANOVA để so sánh sự khác biệt giữa 3 nhóm ngành:
+Lâm sàng, Hỗ trợ y tế và Khoa học sự sống. Tuy nhiên, trong cơ sở dữ liệu thực tế:
+- Nhóm ngành Dược không có đại diện (N=0).
+- Nhóm ngành Lâm sàng chỉ có đúng 1 occupation duy nhất đại diện là Radiologists.
+Việc thực hiện ANOVA trên các nhóm có kích thước quá lệch (một nhóm có N=1, một nhóm có N=0) là hoàn
+toàn sai lầm về mặt toán học và thống kê, dẫn đến các kết luận thiếu lực lượng kiểm định (statistical
+power). Hệ thống đã loại bỏ hoàn toàn kiểm định này để bảo đảm tính trung thực khoa học.
 
 --------------------------------------------------------------------------------
-CHƯƠNG 10: TỔNG KẾT, Ý NGHĨA KINH TẾ VÀ KHUYẾN NGHỊ CHIẾN LƯỢC
+CHƯƠNG 5: THIẾT KẾ RECOMMENDATION ENGINE VÀ THUẬT TOÁN ƯU TIÊN
 --------------------------------------------------------------------------------
-Ứng dụng hỗ trợ đầu tư AI y tế dựa trên WORKBank giải quyết triệt để vấn đề "đầu tư mù quáng" 
-trong chuyển đổi số y khoa. Ý nghĩa thực tiễn đạt được bao gồm:
-- Tối ưu hóa chi phí: Tránh đổ tiền vào các vùng công nghệ chưa chín muồi (R&D Opportunity) hoặc 
-  các vùng nhân sự phản đối gay gắt chưa được đào tạo trước (Red Light).
-- Bảo đảm an toàn lâm sàng: Áp dụng cơ chế giám sát Human-in-the-loop tự động khi phát hiện các tác vụ 
-  đòi hỏi trình độ chuyên môn cao.
-- Nâng cao tỷ lệ thành công: Việc lồng ghép các yếu tố nguyện vọng của con người và phân tích rủi ro 
-  giúp tăng tính sẵn sàng chấp nhận công nghệ của tổ chức.
+Bộ máy khuyến nghị (`recommendation_engine.py`) hoạt động dựa trên triết lý "ra quyết định bằng dữ
+liệu thực tế".
 
-Khuyến nghị dành cho CIO/COO:
-1. Bắt đầu với các dự án thử nghiệm nhỏ (Pilot) trong 90 ngày cho các tác vụ thuộc vùng Green Light 
-   để chứng minh tính khả thi nhanh chóng (Quick Wins).
-2. Thiết lập ngân sách riêng cho chương trình truyền thông và đào tạo nhân sự lâm sàng đối với các 
-   task vụ thuộc vùng Red Light, thay vì chỉ tập trung vào việc mua bản quyền công nghệ.
-3. Duy trì việc cập nhật định kỳ dữ liệu khảo sát và ý kiến đánh giá của chuyên gia để điều chỉnh bản 
-   đồ hành động hàng năm, bảo đảm hệ thống luôn phản ánh chính xác xu hướng công nghệ thực tế.
+5.1. Công thức toán học tính điểm ưu tiên (Priority Score)
+```python
+def priority_score(row) -> float:
+    weight = np.log((row["n_workers"] + row["n_experts"]) + 1)
+    return abs(row["trust_gap"]) * weight
+```
+Ý nghĩa kỹ thuật của công thức:
+- Càng lệch pha về niềm tin và năng lực (`abs(trust_gap)` lớn), tác vụ đó càng cần nhà quản lý hành động
+  ngay (hoặc là triển khai ngay để tận dụng công nghệ, hoặc là phải đào tạo ngay để giảm thiểu lo âu).
+- Trọng số logarith tự nhiên `ln(n + 1)` đóng vai trò là bộ lọc nhiễu (noise filter). Ví dụ: một task
+  chỉ có 1 nhân viên và 1 chuyên gia đánh giá có thể cho ra trust gap rất lớn do yếu tố chủ quan cá nhân.
+  Nếu không có trọng số này, điểm ưu tiên của nó sẽ vượt trội một cách phi lý so với một task vụ có
+  100 nhân viên y tế và 15 chuyên gia tham gia đánh giá. Hàm log giúp làm mượt và tăng cường độ tin
+  cậy của điểm ưu tiên cho các mẫu lớn.
+
+5.2. Thuật toán phân bổ Vùng khuyến nghị
+Hàm `build_recommendations` duyệt qua toàn bộ 27 task vụ lâm sàng/KHSS và phân loại dựa trên 2 ngưỡng:
+- Ngưỡng Desire trung bình (cố định ở mức 3.0).
+- Ngưỡng Capacity trung bình (được cấu hình động bởi thanh trượt của người dùng).
+
+```python
+    for zone in ZONE_ORDER:
+        sub = scored[scored["zone"] == zone]
+        if zone == "Green Light":
+            sub = sub.sort_values("n_workers", ascending=False)
+        else:
+            sub = sub.sort_values("priority_score", ascending=False)
+```
+Quy tắc sắp xếp thứ tự hiển thị:
+- Đối với vùng Green Light: Sắp xếp theo thứ tự `n_workers` giảm dần để CIO bệnh viện ưu tiên triển khai
+  ngay các tác vụ có quy mô nhân sự chịu tác động lớn nhất (tạo ra Quick Wins lâm sàng nhanh nhất).
+- Đối với các vùng khác (Red Light, R&D, Low Priority): Sắp xếp theo thứ tự điểm ưu tiên `priority_score`
+  giảm dần để tập trung giải quyết các điểm nghẽn nghiêm trọng nhất trước tiên.
+
+5.3. Sinh gợi ý chương trình đào tạo dựa trên dữ liệu khảo sát thật
+Đối với các task vụ thuộc vùng Red Light (AI đủ năng lực nhưng nhân viên e ngại triển khai), việc cố
+tình ép buộc cài đặt phần mềm AI sẽ gây ra phản ứng ngược. Hệ thống giải quyết vấn đề này bằng cách
+tự động gợi ý nội dung đào tạo dựa trên dữ liệu thật của tệp tin `audited_desires.csv` thông qua hàm
+`dp.most_common_human_agency_reason(audited_desires, occupation)`.
+Hàm này sẽ quét qua 7 cột lý do giữ vai trò con người (Human Agency) của ngành nghề đó và tìm ra lý do
+phổ biến nhất.
+Ví dụ: Đối với ngành phiên dịch y tế (Medical Transcriptionists), lý do giữ người phổ biến nhất là
+"Control" (Quyền kiểm soát quy trình). Từ đó, hệ thống sẽ sinh ra khuyến nghị:
+_"Lý do giữ người phổ biến nhất tại 'Medical Transcriptionists': Control (28,8% người trả lời, n=52) —
+nội dung đào tạo nên nhắm vào việc hướng dẫn nhân viên cách làm chủ công nghệ, làm thế nào để họ
+kiểm soát hoàn toàn đầu ra của AI."_
+
+--------------------------------------------------------------------------------
+CHƯƠNG 6: LẬP LỘ TRÌNH, QUẢN TRỊ RACI VÀ KPIs ĐỘNG (ROADMAP GENERATOR)
+--------------------------------------------------------------------------------
+Module `roadmap_generator.py` chuyển đổi danh sách các tác vụ được chọn ở Trang 4 thành một kế hoạch
+vận hành hoàn chỉnh ở cấp độ triển khai thực tế.
+
+6.1. Quy trình phân kỳ lộ trình triển khai (Week-based Gantt Plan)
+Hệ thống chia tiến trình triển khai làm 4 giai đoạn chuẩn hóa, nhưng thời gian và nội dung của từng
+giai đoạn được điều chỉnh linh hoạt tùy thuộc vào zone của tác vụ đó:
+- Giai đoạn 1: Discovery (Tuần 1-2) — Dành cho mọi tác vụ để khảo sát quy trình làm việc hiện tại và
+  lập baseline đo lường.
+- Giai đoạn 2 (Trọng tâm hành động):
+  - Green Light: Chạy giai đoạn Pilot thực tế từ Tuần 3-10.
+  - Red Light: Chạy giai đoạn "Đào tạo & Minh bạch hóa" từ Tuần 3-10 để giải quyết rào cản tâm lý.
+  - R&D Opportunity: Chạy track "Nghiên cứu & Theo dõi công nghệ" từ Tuần 3 đến Tuần 26.
+- Giai đoạn 3: Scale hoặc Hold (Tuần 11-14 hoặc Tuần 27-30 đối với R&D) — Đây là mốc Go/No-Go để đưa ra
+  quyết định mở rộng quy mô hay tạm dừng dự án.
+- Giai đoạn 4: Governance & Monitoring (Đảm bảo vận hành lâu dài).
+
+6.2. Thiết lập RACI linh hoạt và tránh hard-code vai trò
+Để bảo đảm tính áp dụng thực tiễn cho nhiều mô hình bệnh viện và doanh nghiệp dược phẩm khác nhau,
+bảng RACI không hard-code tên người mà cho phép CIO/COO nhập vai trò tùy chỉnh qua giao diện Streamlit:
+- Responsible (R) - Người thực hiện trực tiếp.
+- Accountable (A) - Người chịu trách nhiệm phê duyệt và kết quả cuối cùng.
+- Consulted (C) - Người tư vấn chuyên môn.
+- Informed (I) - Người nhận thông tin báo cáo.
+Các vai trò nhập từ giao diện được lưu trữ trong `st.session_state.role_overrides` và truyền vào hàm
+`build_raci_table` để hiển thị tức thời trên bảng kết quả.
+
+6.3. Đánh giá rủi ro lâm sàng và nguyên tắc Human-in-the-loop
+Trong y tế, sai số của AI có thể dẫn đến hậu quả tử vong cho bệnh nhân. Do đó, hệ thống tích hợp bộ lọc
+rủi ro lâm sàng đặc thù dựa trên dữ liệu đánh giá độ phức tạp kỹ năng chuyên môn từ chuyên gia:
+- Nếu một tác vụ có điểm chuyên gia yêu cầu chuyên môn lâm sàng (`domain_expertise_cap`) từ 4.0 trở lên,
+  hệ thống sẽ tự động ghi nhận rủi ro: "Sai sót chuyên môn lâm sàng nếu giám sát lỏng lẻo".
+- Biện pháp giảm thiểu bắt buộc là: "Thiết lập cơ chế giám sát Human-in-the-loop (con người kiểm duyệt
+  chéo kết quả AI) trong suốt giai đoạn pilot và chạy thử nghiệm lâm sàng độc lập."
+
+--------------------------------------------------------------------------------
+CHƯƠNG 7: THIẾT KẾ UX/UI VÀ BỐ CỤC DASHBOARD CHUYÊN NGHIỆP
+--------------------------------------------------------------------------------
+7.1. Tối ưu hóa giao diện giảm tải nhận thức (Cognitive Load Reduction)
+Một trong những lỗi thiết kế dashboard phổ biến nhất là hiển thị quá nhiều thông tin chi tiết cùng một
+lúc, khiến người dùng bị quá tải. Trang 4 của ứng dụng được xây dựng theo bố cục 2 cột bất đối xứng
+(tỷ lệ 7:4):
+- Cột trái (7 phần màn hình): Sử dụng cấu trúc `st.expander` (Accordion) để chia nhỏ danh sách 27 task
+  vụ theo 4 vùng. Mặc định hệ thống chỉ mở vùng Green Light (vùng cần hành động ngay), các vùng khác
+  được thu gọn. Người dùng có thể chủ động nhấn mở vùng khác để xem chi tiết khi cần thiết.
+- Cột phải (4 phần màn hình): Đóng vai trò là ô tóm tắt cố định (Sticky Summary Box). Bất cứ khi nào
+  người dùng tick chọn một task vụ ở cột trái, Streamlit sẽ ngay lập tức thực hiện lệnh `st.rerun()`,
+  re-render lại giao diện và hiển thị ngay tác vụ đó ở cột phải kèm thẻ màu đặc trưng của zone tương ứng.
+  Người dùng có cái nhìn trực quan về "giỏ hàng công nghệ" của mình trước khi nhấn nút nhảy sang Trang 5.
+
+7.2. Tùy biến CSS cao cấp
+Mã nguồn của `app.py` nhúng trực tiếp khối CSS tùy chỉnh để định hình lại giao diện thô của Streamlit
+thành một sản phẩm phần mềm thương mại cao cấp:
+- Đặt font chữ chủ đạo là **Inter** từ Google Fonts.
+- Thay đổi thanh cuộn bên trái (Sidebar) sang dải màu gradient từ xanh chàm đậm sang xanh tím hoàng gia
+  (#1E1B4B đến #312E81) để tạo cảm giác chuyên nghiệp, tin cậy.
+- Bo tròn góc cho tất cả các container, card thông tin và nút bấm (`border-radius: 12px` đến `18px`).
+- Tích hợp hiệu ứng đổ bóng mờ (`box-shadow`) tạo chiều sâu trực quan trên nền giao diện xám nhạt nhẹ.
+
+--------------------------------------------------------------------------------
+CHƯƠNG 8: HƯỚNG DẪN CÀI ĐẶT, VẬN HÀNH VÀ TRIỂN KHAI
+--------------------------------------------------------------------------------
+8.1. Yêu cầu môi trường hệ thống
+- Hệ điều hành: Windows, Linux hoặc macOS.
+- Phiên bản Python khuyến nghị: Python 3.10 trở lên.
+- Các gói thư viện bắt buộc (được ghi nhận trong `requirements.txt`):
+  - streamlit>=1.32
+  - pandas>=2.0
+  - numpy>=1.24
+  - scipy>=1.10
+  - plotly>=5.18
+  - tabulate>=0.9
+
+8.2. Hướng dẫn thiết lập cục bộ (Local Developer Setup)
+Bước 1: Sao chép dự án về thư mục làm việc cục bộ.
+Bước 2: Tạo môi trường ảo Python để cô lập các gói cài đặt:
+```bash
+python -m venv venv
+```
+Bước 3: Kích hoạt môi trường ảo:
+- Trên Windows (Powershell):
+  ```powershell
+  .\venv\Scripts\Activate.ps1
+  ```
+- Trên Linux/macOS:
+  ```bash
+  source venv/bin/activate
+  ```
+Bước 4: Cài đặt toàn bộ các thư viện phụ thuộc:
+```bash
+pip install -r requirements.txt
+```
+Bước 5: Đặt dữ liệu gốc WORKBank vào thư mục `data/` trong thư mục gốc của dự án.
+Bước 6: Khởi chạy máy chủ Streamlit để chạy ứng dụng:
+```bash
+streamlit run app.py
+```
+Hệ thống sẽ tự động biên dịch và mở giao diện dashboard trên trình duyệt mặc định tại địa chỉ:
+`http://localhost:8501`
+
+--------------------------------------------------------------------------------
+CHƯƠNG 9: HƯỚNG DẪN SỬ DỤNG CHI TIẾT DÀNH CHO C-LEVEL
+--------------------------------------------------------------------------------
+Để giúp CIO và COO bệnh viện sử dụng hệ thống một cách hiệu quả nhất, dưới đây là hướng dẫn thao tác
+từng bước qua 6 trang chức năng:
+
+9.1. Bước 1: Trang "Tổng quan minh bạch" (Trang 1)
+- Nhiệm vụ: Đọc và nắm bắt số lượng thống kê cơ bản của dữ liệu (kỳ vọng là 4 ngành nghề đã được kiểm toán
+  đầy đủ dữ liệu, 27 task vụ lâm sàng và 168 phản hồi của nhân viên y tế).
+- Hành động: Kiểm tra danh sách các ngành nghề "Chưa khảo sát ý kiến" hiển thị ở dưới trang để lên kế
+  hoạch thu thập thêm dữ liệu khảo sát trước khi áp dụng giải pháp kỹ thuật đối với những ngành này.
+
+9.2. Bước 2: Trang "Bằng chứng nền" (Trang 2)
+- Nhiệm vụ: Tham khảo nhanh các kết quả kiểm định thống kê tổng thể so sánh Y tế vs. các ngành khác.
+- Hành động: Quan sát biểu đồ hộp (Box Plot) và biểu đồ thanh ngang p-value để nhận thức được các đặc thù
+  nổi trội của nhân viên y tế (yêu cầu chuyên môn cao, lo ngại trách nhiệm chất lượng chuyên môn).
+
+9.3. Bước 3: Trang "Bản đồ hành động" (Trang 3)
+- Nhiệm vụ: Quan sát vị trí phân bổ trực quan của 27 task vụ trên bản đồ 2 trục tọa độ (Desire và Capacity).
+- Hành động: Điều chỉnh thử nghiệm thanh trượt Risk Tolerance trên đầu trang để quan sát sự thay đổi động
+  của các task vụ di chuyển giữa 4 vùng. Nhấn nút chuyển sang Trang 4 khi đã chọn được ngưỡng cấu hình phù hợp.
+
+9.4. Bước 4: Trang "Bộ khuyến nghị theo vùng" (Trang 4)
+- Nhiệm vụ: Xem xét các hành động cụ thể được hệ thống tự động sinh ra cho từng task vụ và lựa chọn
+  tác vụ cần đưa vào lộ trình.
+- Hành động: Mở từng expander vùng, đọc kỹ các khuyến nghị hành động lâm sàng và tích chọn "➕ Chọn"
+  ở các task vụ mong muốn. Sau đó nhấn nút "Xây dựng lộ trình (Trang 5) ➔" ở cột bên phải.
+
+9.5. Bước 5: Trang "Lộ trình triển khai" (Trang 5)
+- Nhiệm vụ: Xem cấu hình lộ trình hoạt động chi tiết theo tuần, bảng phân vai trò trách nhiệm và
+  đánh giá ngân sách/rủi ro lâm sàng.
+- Hành động: Nhập các vai trò tùy chỉnh của bệnh viện/doanh nghiệp dược vào ô RACI. Quan sát các cảnh báo
+  rủi ro về an toàn lâm sàng của các task vụ phức tạp.
+
+9.6. Bước 6: Trang "Xuất Action Plan" (Trang 6)
+- Nhiệm vụ: Tải và lưu trữ báo cáo hành động hoàn chỉnh.
+- Hành động: Nhấn nút "Tải action_plan.md" để lấy file báo cáo định dạng Markdown phục vụ cho việc gửi
+  email báo cáo Ban giám đốc, và nhấn nút "Tải recommendations_export.csv" để lấy bảng dữ liệu Excel 
+  phục vụ cho việc lập ngân sách chi tiết.
+
+--------------------------------------------------------------------------------
+CHƯƠNG 10: TỔNG KẾT VÀ TẦM NHÌN PHÁT TRIỂN TƯƠNG LAI
+--------------------------------------------------------------------------------
+10.1. Tóm tắt giá trị cốt lõi của dự án
+Dự án "Ưu tiên hoá đầu tư AI" đã xây dựng thành công một cầu nối thực chứng giữa mong muốn của nhân viên
+y tế lâm sàng và năng lực thực tế của công nghệ AI. Ứng dụng giúp xóa bỏ hoàn toàn việc quyết định đầu tư
+mang tính cảm tính, bảo đảm mọi dự án AI y khoa đều được chuẩn bị kỹ lưỡng về mặt con người (thông qua
+đào tạo Red Light) và vững chắc về mặt công nghệ (thông qua triển khai pilot Green Light).
+
+10.2. Tầm nhìn mở rộng hệ thống (Future Roadmap)
+Trong các giai đoạn nâng cấp tiếp theo, dự án hướng tới:
+- Tích hợp chuẩn giao tiếp dữ liệu y khoa HL7/FHIR để tự động thu thập và đồng bộ hóa các tác vụ trực tiếp
+  từ hệ thống Hồ sơ bệnh án điện tử (EMR/EHR) của bệnh viện.
+- Mở rộng tập dữ liệu chuyên gia y khoa lâm sàng tại Việt Nam để phản ánh đúng năng lực và điều kiện hạ
+  tầng AI trong nước.
+- Xây dựng mô hình máy học dự đoán trước tỷ lệ chấp nhận công nghệ của y bác sĩ dựa trên lịch sử hoạt
+  động chẩn đoán hình ảnh thực tế của họ.
 `,
 };
 
